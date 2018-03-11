@@ -1,0 +1,15 @@
+[MASTER]
+reports=no
+good-names=m
+notes=FIXME,XXX
+
+disable=
+  line-too-long,
+  broad-except,
+  locally-disabled,
+  unused-argument,
+  too-many-instance-attributes,
+  too-many-public-methods,
+  too-few-public-methods,
+  
+ignored-modules=distutils,distutils.util
