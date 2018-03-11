@@ -19,7 +19,7 @@ LOGIN_RESPONSE = '''
                     12000,
                     16000
                 ],
-                "phoneID": "68fe6b07f32f4e75",
+                "phoneID": "121212121212",
                 "loginEmail": null,
                 "wsRoot": "https://my.wirelesstag.net/",
                 "noWemoSearch": false
