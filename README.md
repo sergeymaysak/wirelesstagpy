@@ -33,5 +33,5 @@ see www.wirelesstag.net for more information.
 I am in no way affiliated with Cao Gadgets LLC.
 
 # Copyright
-See LICENSE
+See [LICENSE](.LICENSE)
 
