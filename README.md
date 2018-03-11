@@ -1,4 +1,4 @@
-# Wireless Sensor Tags python
+# WirelessSensorTags python | [![Build Status](https://travis-ci.org/sergeymaysak/wirelesstagpy.svg?branch=master)](https://travis-ci.org/sergeymaysak/wirelesstagpy)
 
 A simple python wrapper library for Wireless Sensor Tag platform (http://wirelesstag.net).
 
@@ -33,5 +33,5 @@ see www.wirelesstag.net for more information.
 I am in no way affiliated with Cao Gadgets LLC.
 
 # Copyright
-See [LICENSE](.LICENSE)
+See [LICENSE](LICENSE)
 
