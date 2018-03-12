@@ -4,7 +4,7 @@
 from __future__ import print_function
 import io
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import wirelesstagpy.constants as CONST
 
@@ -19,12 +19,13 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 LONG_DESCRIPTION = read('README.md', 'CHANGES.md', 'TODO.md')
+PACKAGES = find_packages(exclude=['test', 'test.*', 'test*'])
 
 setup(
     name='wirelesstagpy',
     version=CONST.__version__,
-    url='http://github.com/sergeymaysak/wirelesstagpy/',
-    license='MIT Software License',
+    url='https://github.com/sergeymaysak/wirelesstagpy/',
+    license='MIT',
     author='Sergiy Maysak',
     tests_require=['pytest'],
     install_requires=['requests>=2.18.4',
@@ -33,7 +34,8 @@ setup(
     author_email='sergey.maysak@gmail.com',
     description='Simple python wrapper over wirelesstags REST API',
     long_description=LONG_DESCRIPTION,
-    packages=['wirelesstagpy'],
+    packages=PACKAGES,
+    python_requires='>=3',
     py_modules=['wirelesstagpy'],
     include_package_data=True,
     platforms='any',
