@@ -22,6 +22,7 @@ class SensorTag:
         self._info = info
         self._api = platform
         self.uuid = self._info['uuid']
+        self.tag_id = self._info['slaveId']
         self.name = self._info['name']
         self.temperature = self._info['temperature']
         self.humidity = self._info['cap']
@@ -49,10 +50,7 @@ class SensorTag:
 
     @property
     def tag_type(self):
-        """Int representing tag type.
-
-        Known types are: 1) Regular, 2) 13-bit, 3) Pro, 4) Pro ALS.
-        """
+        """Int representing tag type."""
         return self._info['tagType']
 
     @property
@@ -110,6 +108,54 @@ class SensorTag:
     def time_since_last_update(self):
         """Time delta since last sensor data load."""
         return datetime.utcnow() - self.last_load_time
+
+    @property
+    def motion_state(self):
+        """Return state of motion sensor."""
+        # spec = {0: 'Disarmed', 1: 'Armed', 2: 'Moved', 3: 'Opened', 4: 'Closed',
+        #        5: 'DetectedMovement', 6: 'TimedOut', 7: 'Stabilizing', 8: 'CarriedAway',
+        #        9: 'InFreeFall'}
+        return self._info['eventState']
+
+    @property
+    def is_motion_sensor_armed(self):
+        """Return True if tag armed and listens to motion evens."""
+        return self.motion_state != 0
+
+    @property
+    def humidity_sensor_state(self):
+        """Return state of humidity event state."""
+        # NA or Disarmed or Normal or TooDry or TooHumid or ThresholdPending
+        return self._info['capEventState']
+
+    @property
+    def is_humidity_sensor_armed(self):
+        """Return True if tag armed and listens to motion evens."""
+        cap_state = self.humidity_sensor_state
+        return cap_state != 0 and cap_state != 1
+
+    @property
+    def temperature_sensor_state(self):
+        """Return state of temp sensor monitoring."""
+        # "tempEventState":Disarmed or Normal or TooHigh or TooLow or ThresholdPending
+        return self._info['tempEventState']
+
+    @property
+    def is_temperature_sensor_armed(self):
+        """Return True if tag armed and listens to temperature changes evens."""
+        return self.temperature_sensor_state != 0
+
+    @property
+    def light_sensor_state(self):
+        """Return state of light sensor monitoring."""
+        # "lightEventState":NA or Disarmed or Normal or TooDark or TooBright or ThresholdPending
+        return self._info['lightEventState']
+
+    @property
+    def is_light_sensor_armed(self):
+        """Return True if tag armed and listens to light changes evens."""
+        light_state = self.light_sensor_state
+        return light_state != 0 and light_state != 1
 
     def __str__(self):
         """Return string representation of tag."""

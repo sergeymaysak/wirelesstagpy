@@ -128,3 +128,147 @@ TAGS_LIST_RESPONSE = '''
         ]
     }
     '''
+
+ARM_MOTION_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 1,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+DISARM_MOTION_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+ARM_TEMP_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 1,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+DISARM_TEMP_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+ARM_HUMIDITY_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 2,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+DISARM_HUMIDITY_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+ARM_LIGHT_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 2,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''
+
+DISARM_LIGHT_RESPONSE = '''
+    {
+        "d": {
+            "name": "Living room",
+            "uuid": "fake-1111-2222-4444-111111111111",
+            "slaveId": 1,
+            "tagType": 13,
+            "eventState": 0,
+            "tempEventState": 0,
+            "capEventState": 0,
+            "lightEventState": 0,
+            "temperature": 22.3912296295166,
+            "lux": 0,
+            "cap": 36.27447509765625
+        }
+    }
+    '''

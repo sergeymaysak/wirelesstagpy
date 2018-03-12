@@ -64,6 +64,11 @@ class TestWirelessTags(unittest.TestCase):
             self.assertIsNotNone(sensor.hw_revision)
             self.assertIsNotNone(sensor.sw_version)
             self.assertIsNotNone(sensor.power_consumption)
+
+            self.assertFalse(sensor.is_motion_sensor_armed)
+            self.assertFalse(sensor.is_humidity_sensor_armed)
+            self.assertFalse(sensor.is_temperature_sensor_armed)
+            self.assertFalse(sensor.is_light_sensor_armed)
             print("tag: {} last updated: {}".format(sensor, sensor.time_since_last_update))
 
     @requests_mock.mock()
@@ -96,3 +101,77 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(description.startswith('WirelessTagsPlatform: using celsius'))
         print('platform: {}'.format(description))
         self.assertTrue(tags.keys())
+
+    @requests_mock.mock()
+    def test_arm_disarm_motion(self, m):
+        """Verify arm/disarm basic behaviour."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_MOTION_URL, text=MOCK.ARM_MOTION_RESPONSE)
+        m.post(CONST.DISARM_MOTION_URL, text=MOCK.DISARM_MOTION_RESPONSE)
+
+        sensor = self.platform.arm_motion(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertTrue(sensor.is_motion_sensor_armed)
+
+        sensor = self.platform.disarm_motion(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_motion_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_temperature(self, m):
+        """Verify arm/disarm temperature monitoring."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_TEMPERATURE_URL, text=MOCK.ARM_TEMP_RESPONSE)
+        m.post(CONST.DISARM_TEMPERATURE_URL, text=MOCK.DISARM_TEMP_RESPONSE)
+
+        sensor = self.platform.arm_temperature(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertTrue(sensor.is_temperature_sensor_armed)
+
+        sensor = self.platform.disarm_temperature(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_temperature_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_humidity(self, m):
+        """Verify arm/disarm temperature monitoring."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_HUMIDITY_URL, text=MOCK.ARM_HUMIDITY_RESPONSE)
+        m.post(CONST.DISARM_HUMIDITY_URL, text=MOCK.DISARM_HUMIDITY_RESPONSE)
+
+        sensor = self.platform.arm_humidity(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertTrue(sensor.is_humidity_sensor_armed)
+
+        sensor = self.platform.disarm_humidity(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_humidity_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_light(self, m):
+        """Verify arm/disarm temperature monitoring."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_LIGHT_URL, text=MOCK.ARM_LIGHT_RESPONSE)
+        m.post(CONST.DISARM_LIGHT_URL, text=MOCK.DISARM_LIGHT_RESPONSE)
+
+        sensor = self.platform.arm_light(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertTrue(sensor.is_light_sensor_armed)
+
+        sensor = self.platform.disarm_light(1)
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_light_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_failed(self, m):
+        """Verify arm/disarm temperature monitoring."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_LIGHT_URL, text='{no really valid payload}')
+
+        sensor = self.platform.arm_light(1)
+        self.assertIsNone(sensor)

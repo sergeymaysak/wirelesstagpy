@@ -78,6 +78,55 @@ class WirelessTags:
 
         return self._tags
 
+    def arm_motion(self, tag_id):
+        """Arm motion sensor to monitor changes."""
+        payload = {"id": tag_id, "door_mode_set_closed": True}
+        return self._arm_control_tag_with_url(tag_id, CONST.ARM_MOTION_URL, payload)
+
+    def arm_temperature(self, tag_id):
+        """Arm temperature sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.ARM_TEMPERATURE_URL)
+
+    def arm_humidity(self, tag_id):
+        """Arm humidity sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.ARM_HUMIDITY_URL)
+
+    def arm_light(self, tag_id):
+        """Arm light sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.ARM_LIGHT_URL)
+
+    def disarm_motion(self, tag_id):
+        """Disarm motion sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_MOTION_URL)
+
+    def disarm_temperature(self, tag_id):
+        """Disarm temperature sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_TEMPERATURE_URL)
+
+    def disarm_humidity(self, tag_id):
+        """Disarm humidity sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_HUMIDITY_URL)
+
+    def disarm_light(self, tag_id):
+        """Arm light sensor to monitor changes."""
+        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_LIGHT_URL)
+
+    def _arm_control_tag_with_url(self, tag_id, url, own_payload=None):
+        """Arm sensor with specified id and url to monitor changes."""
+        cookies = self._auth_cookies
+        sensor_tag = None
+        try:
+            payload = json.dumps({"id": tag_id} if own_payload is None else own_payload)
+            response = requests.post(url, headers=self._HEADERS, cookies=cookies, data=payload)
+            json_tags_spec = response.json()
+            tag = json_tags_spec['d']
+            uuid = tag['uuid']
+            self._tags[uuid] = SensorTag(tag, self)
+            sensor_tag = self._tags[uuid]
+        except Exception as error:
+            _LOGGER.error("failed to arm/disarm for tag id: %s - %s", tag_id, error)
+        return sensor_tag
+
     def _login(self):
         """Perform user login."""
         auth = json.dumps({"email": self._username, "password": self._password})
