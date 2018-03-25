@@ -8,8 +8,11 @@ import unittest
 import test.mock as MOCK
 import requests_mock
 
+
 import wirelesstagpy
 import wirelesstagpy.constants as CONST
+from wirelesstagpy.sensortag import SensorTag
+from wirelesstagpy.notificationconfig import NotificationConfig
 
 USERNAME = 'foobar'
 PASSWORD = 'deadbeef'
@@ -68,8 +71,52 @@ class TestWirelessTags(unittest.TestCase):
             self.assertFalse(sensor.is_motion_sensor_armed)
             self.assertFalse(sensor.is_humidity_sensor_armed)
             self.assertFalse(sensor.is_temperature_sensor_armed)
+            self.assertFalse(sensor.is_moisture_sensor_armed)
+            self.assertTrue(sensor.moisture_sensor_state == 0)
             self.assertFalse(sensor.is_light_sensor_armed)
             print("tag: {} last updated: {}".format(sensor, sensor.time_since_last_update))
+
+    def test_alspro_tag_binary_states(self):
+        """Test avaiable binary states for als pro tag."""
+        tag = SensorTag(MOCK.ALS_PRO, self.platform)
+        self.assertTrue(tag.is_moved)
+        self.assertFalse(tag.is_door_open)
+        self.assertTrue(tag.is_cold)
+        self.assertFalse(tag.is_heat)
+        self.assertFalse(tag.is_too_dry)
+        self.assertFalse(tag.is_too_humid)
+        self.assertFalse(tag.is_leaking)
+        self.assertTrue(tag.is_light_on)
+        self.assertFalse(tag.is_battery_low)
+        self.assertIsNotNone(str(tag))
+
+    def test_water_tag_binary_states(self):
+        """Test avaiable binary states for als pro tag."""
+        tag = SensorTag(MOCK.WATERSENSOR, self.platform)
+        self.assertFalse(tag.is_moved)
+        self.assertFalse(tag.is_door_open)
+        self.assertFalse(tag.is_cold)
+        self.assertFalse(tag.is_heat)
+        self.assertFalse(tag.is_too_dry)
+        self.assertFalse(tag.is_too_humid)
+        self.assertTrue(tag.is_leaking)
+        self.assertFalse(tag.is_light_on)
+        self.assertFalse(tag.is_battery_low)
+        self.assertIsNotNone(str(tag))
+
+    def test_13bit_tag_binary_states(self):
+        """Test avaiable binary states for als pro tag."""
+        tag = SensorTag(MOCK.BITS13, self.platform)
+        self.assertFalse(tag.is_moved)
+        self.assertTrue(tag.is_door_open)
+        self.assertFalse(tag.is_cold)
+        self.assertTrue(tag.is_heat)
+        self.assertFalse(tag.is_too_dry)
+        self.assertTrue(tag.is_too_humid)
+        self.assertFalse(tag.is_leaking)
+        self.assertFalse(tag.is_light_on)
+        self.assertTrue(tag.is_battery_low)
+        self.assertIsNotNone(str(tag))
 
     @requests_mock.mock()
     def test_failed_login(self, m):
@@ -175,3 +222,73 @@ class TestWirelessTags(unittest.TestCase):
 
         sensor = self.platform.arm_light(1)
         self.assertIsNone(sensor)
+
+    @requests_mock.mock()
+    def test_fetch_push_notifications(self, m):
+        """Test fetch installed push notifications."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.LOAD_EVENT_URL_CONFIG_URL, text=MOCK.LOAD_EVENT_URL_CONFIG_RESPONSE)
+
+        notifications = self.platform.fetch_push_notifications(1)
+        self.assertEqual(len(notifications), 22)
+
+        enabled_notification = list(filter(lambda x: x.is_enabled, notifications))
+        self.assertEqual(len(enabled_notification), 1)
+
+        config = enabled_notification[0]
+        self.assertEqual(config.name, 'update')
+        self.assertEqual(config.is_local, True)
+        self.assertEqual(config.verb, 'POST')
+        self.assertEqual(config.content, 'message')
+        self.assertEqual(config.url, 'http://host_name/update')
+
+    @requests_mock.mock()
+    def test_fail_fetch_notifications(self, m):
+        """Test for catching errors logic inside fetch method."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.LOAD_EVENT_URL_CONFIG_URL, text='kinda failed', status_code=500)
+
+        notifications = self.platform.fetch_push_notifications(1)
+        self.assertEqual(len(notifications), 0)
+
+    def test_notification(self):
+        """Test NotificationConfig properties."""
+        config = NotificationConfig('update', MOCK.UPDATE_NOTIFICATION_CONFIG)
+
+        self.assertEqual(config.name, 'update')
+        self.assertEqual(config.is_local, True)
+        self.assertEqual(config.verb, 'POST')
+        self.assertEqual(config.content, "{\"name\":\"{0}\",\"id\":{1},\"temp\": {2}, \"cap\":{3},\"lux\":{4}}")
+        self.assertEqual(config.url, 'http://10.10.0.2/api/events/update_tags')
+        self.assertIsNotNone(str(config))
+
+    @requests_mock.mock()
+    def test_install_notifications(self, m):
+        """Test install push notifications."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.LOAD_EVENT_URL_CONFIG_URL, text=MOCK.LOAD_EVENT_URL_CONFIG_RESPONSE)
+        m.post(CONST.SAVE_EVENT_URL_CONFIG_URL, text=MOCK.LOAD_EVENT_URL_CONFIG_RESPONSE)
+
+        notifications = [
+            NotificationConfig("update", MOCK.UPDATE_NOTIFICATION_CONFIG)
+        ]
+
+        result = self.platform.install_push_notification(1, notifications, False)
+        self.assertTrue(result)
+        print('succeed: ', result)
+
+    @requests_mock.mock()
+    def test_fail_setup_notifications(self, m):
+        """Test for catching errors logic inside install notifications method."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.LOAD_EVENT_URL_CONFIG_URL, text='kinda failed', status_code=500)
+
+        notifications = [
+            NotificationConfig("update", MOCK.UPDATE_NOTIFICATION_CONFIG)
+        ]
+        result = self.platform.install_push_notification(1, notifications, False)
+        self.assertFalse(result)

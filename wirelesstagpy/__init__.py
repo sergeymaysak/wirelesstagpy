@@ -26,6 +26,7 @@ import requests
 
 from wirelesstagpy.sensortag import SensorTag
 from wirelesstagpy.exceptions import WirelessTagsException
+from wirelesstagpy.notificationconfig import NotificationConfig
 import wirelesstagpy.constants as CONST
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,37 +82,91 @@ class WirelessTags:
     def arm_motion(self, tag_id):
         """Arm motion sensor to monitor changes."""
         payload = {"id": tag_id, "door_mode_set_closed": True}
-        return self._arm_control_tag_with_url(tag_id, CONST.ARM_MOTION_URL, payload)
+        return self._arm_control_tag(tag_id, CONST.ARM_MOTION_URL, payload)
 
     def arm_temperature(self, tag_id):
         """Arm temperature sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.ARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_TEMPERATURE_URL)
 
     def arm_humidity(self, tag_id):
         """Arm humidity sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.ARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_HUMIDITY_URL)
 
     def arm_light(self, tag_id):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.ARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_LIGHT_URL)
 
     def disarm_motion(self, tag_id):
         """Disarm motion sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_MOTION_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_MOTION_URL)
 
     def disarm_temperature(self, tag_id):
         """Disarm temperature sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_TEMPERATURE_URL)
 
     def disarm_humidity(self, tag_id):
         """Disarm humidity sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_HUMIDITY_URL)
 
     def disarm_light(self, tag_id):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag_with_url(tag_id, CONST.DISARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL)
 
-    def _arm_control_tag_with_url(self, tag_id, url, own_payload=None):
+    def install_push_notification(self, tag_id, notifications, apply_to_all=False):
+        """Install set of push notifications for specified tag."""
+        def list_to_spec(array):
+            """Sub-func to represent notifications as disctionary."""
+            spec = {}
+            for item in array:
+                spec[item.name] = item.spec
+            return spec
+
+        installed_spec = list_to_spec(self.fetch_push_notifications(tag_id))
+        requested_spec = list_to_spec(notifications)
+
+        new_config = installed_spec
+        for name, _ in installed_spec.items():
+            if name in requested_spec:
+                new_config[name] = requested_spec[name]
+
+        succeed = True
+        cookies = self._auth_cookies
+        try:
+            payload = {
+                "config": new_config,
+                "applyAll": apply_to_all,
+                "id": tag_id if not apply_to_all else -1
+            }
+
+            response = requests.post(CONST.SAVE_EVENT_URL_CONFIG_URL,
+                                     headers=self._HEADERS,
+                                     cookies=cookies,
+                                     data=json.dumps(payload))
+            succeed = "d" in response.json()
+        except Exception as error:
+            _LOGGER.error("failed to save notifications configuration: %s - %s", tag_id, error)
+            succeed = False
+
+        return succeed
+
+    def fetch_push_notifications(self, tag_id):
+        """Read from tags manager current set of push notifications installed."""
+        cookies = self._auth_cookies
+        notifications = []
+        try:
+            payload = json.dumps({"id": tag_id})
+            response = requests.post(CONST.LOAD_EVENT_URL_CONFIG_URL, headers=self._HEADERS,
+                                     cookies=cookies, data=payload)
+            json_notifications_spec = response.json()
+            set_spec = json_notifications_spec['d']
+            for name, spec in set_spec.items():
+                if "url" in spec:
+                    notifications.append(NotificationConfig(name, spec))
+        except Exception as error:
+            _LOGGER.error("failed to fetch : %s - %s", tag_id, error)
+        return notifications
+
+    def _arm_control_tag(self, tag_id, url, own_payload=None):
         """Arm sensor with specified id and url to monitor changes."""
         cookies = self._auth_cookies
         sensor_tag = None

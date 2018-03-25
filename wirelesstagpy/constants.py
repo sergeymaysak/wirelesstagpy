@@ -25,3 +25,6 @@ DISARM_MOTION_URL = BASEURL + "/ethClient.asmx/DisArm"
 DISARM_HUMIDITY_URL = BASEURL + "/ethClient.asmx/DisarmCapSensor"
 DISARM_TEMPERATURE_URL = BASEURL + "/ethClient.asmx/DisarmTempSensor"
 DISARM_LIGHT_URL = BASEURL + "/ethClient.asmx/DisarmLightSensor"
+
+LOAD_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/LoadEventURLConfig"
+SAVE_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/SaveEventURLConfig"

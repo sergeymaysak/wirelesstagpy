@@ -26,6 +26,7 @@ class SensorTag:
         self.name = self._info['name']
         self.temperature = self._info['temperature']
         self.humidity = self._info['cap']
+        self.moisture = self.humidity
 
         # ambient light - working range: 0.1 lux to 200,000 lux
         self.light = self._info['lux']
@@ -47,6 +48,11 @@ class SensorTag:
     def battery_volts(self):
         """Return current voltage of battery as float in volts."""
         return self._info['batteryVolt']
+
+    @property
+    def low_battery_threshold(self):
+        """Return amount of volts triggering low battery notification."""
+        return self._info['LBTh']
 
     @property
     def tag_type(self):
@@ -125,19 +131,29 @@ class SensorTag:
     @property
     def humidity_sensor_state(self):
         """Return state of humidity event state."""
-        # NA or Disarmed or Normal or TooDry or TooHumid or ThresholdPending
+        # NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
         return self._info['capEventState']
 
     @property
     def is_humidity_sensor_armed(self):
-        """Return True if tag armed and listens to motion evens."""
+        """Return True if tag armed and listens to humidity changes events."""
         cap_state = self.humidity_sensor_state
         return cap_state != 0 and cap_state != 1
 
     @property
+    def moisture_sensor_state(self):
+        """Return moisture state."""
+        return self.humidity_sensor_state
+
+    @property
+    def is_moisture_sensor_armed(self):
+        """Return True if tag armed and listens to moisture level events."""
+        return self.is_humidity_sensor_armed
+
+    @property
     def temperature_sensor_state(self):
         """Return state of temp sensor monitoring."""
-        # "tempEventState":Disarmed or Normal or TooHigh or TooLow or ThresholdPending
+        # Disarmed(0) or Normal(1) or TooHigh(2) or TooLow(3) or ThresholdPending(4)
         return self._info['tempEventState']
 
     @property
@@ -147,8 +163,10 @@ class SensorTag:
 
     @property
     def light_sensor_state(self):
-        """Return state of light sensor monitoring."""
-        # "lightEventState":NA or Disarmed or Normal or TooDark or TooBright or ThresholdPending
+        """Return state of light sensor monitoring.
+
+        States: NA (0) or Disarmed(1) or Normal or TooDark or TooBright or ThresholdPending.
+        """
         return self._info['lightEventState']
 
     @property
@@ -157,6 +175,59 @@ class SensorTag:
         light_state = self.light_sensor_state
         return light_state != 0 and light_state != 1
 
-    def __str__(self):
+    @property
+    def is_moved(self):
+        """Return True if detected movement."""
+        return self.motion_state == 2  # Moved
+
+    @property
+    def is_door_open(self):
+        """Return True if detected door opening."""
+        return self.motion_state == 3  # Open
+
+    @property
+    def is_cold(self):
+        """Return True if temperature is too low."""
+        return self.temperature_sensor_state == 3  # TooLow
+
+    @property
+    def is_heat(self):
+        """Return True if temperature is too high."""
+        return self.temperature_sensor_state == 2  # TooHigh
+
+    @property
+    def is_too_dry(self):
+        """Return True if humidity is too low (<20%)."""
+        return self.humidity_sensor_state == 3  # TooDry
+
+    @property
+    def is_too_humid(self):
+        """Return True if humidity is too wet (>80%)."""
+        return self.humidity_sensor_state == 4  # TooHumid
+
+    @property
+    def is_light_on(self):
+        """Return True if detected light."""
+        return self.light > 0
+
+    @property
+    def is_leaking(self):
+        """Return True if detected water leak - applicable for water sensor only."""
+        return self.tag_type == 32 and self.moisture > 0
+
+    @property
+    def is_battery_low(self):
+        """Return True if detected low battery level."""
+        return self.battery_volts <= self.low_battery_threshold
+
+    def __repr__(self):
         """Return string representation of tag."""
+        # Water/Moisture Sensor supports water and temperature
+        if self.tag_type == 32:
+            return '{} temp: {} leak: {}'.format(self.name, self.temperature, self.is_leaking)
+        # LS Pro (8bit)
+        elif self.tag_type == 26:
+            return '{} temp: {} humidity: {} lux: {}'.format(self.name, self.temperature, self.humidity, self.light)
+
+        # use 13-bit tag supports temp/motion/humidity as fallback for everything else
         return '{} temp: {} humidity: {}'.format(self.name, self.temperature, self.humidity)

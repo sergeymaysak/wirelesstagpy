@@ -1,5 +1,53 @@
 """mocks live here."""
 
+ALS_PRO = {
+    "name": "Kitchen",
+    "uuid": "fake-1111-2222-4444-111111111111",
+    "slaveId": 1,
+    "tagType": 26,
+    "eventState": 2,
+    "tempEventState": 3,
+    "capEventState": 0,
+    "lightEventState": 0,
+    "temperature": 22.3912296295166,
+    "lux": 1000,
+    "cap": 36,
+    "batteryVolt": 3.05576890659684,
+    "LBTh": 2.55
+}
+
+BITS13 = {
+    "name": "Kitchen",
+    "uuid": "fake-1111-2222-4444-111111111111",
+    "slaveId": 1,
+    "tagType": 13,
+    "eventState": 3,
+    "tempEventState": 2,
+    "capEventState": 4,
+    "lightEventState": 0,
+    "temperature": 22.3912296295166,
+    "lux": 0,
+    "cap": 87,
+    "batteryVolt": 2.05576890659684,
+    "LBTh": 2.55
+}
+
+WATERSENSOR = {
+    "name": "Kitchen",
+    "uuid": "fake-1111-2222-4444-111111111111",
+    "slaveId": 1,
+    "tagType": 32,
+    "eventState": 0,
+    "tempEventState": 0,
+    "capEventState": 0,
+    "lightEventState": 0,
+    "temperature": 22.3912296295166,
+    "lux": 0,
+    "cap": 87,
+    "batteryVolt": 3.05576890659684,
+    "LBTh": 2.55
+}
+
 LOGIN_RESPONSE = '''
         {
             "d": {
@@ -272,3 +320,173 @@ DISARM_LIGHT_RESPONSE = '''
         }
     }
     '''
+
+LOAD_EVENT_URL_CONFIG_RESPONSE = '''
+    {
+        "d": {
+            "__type": "MyTagList.EventURLConfig",
+            "oor": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "back_in_range": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "low_battery": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "motion_detected": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "door_opened": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "door_closed": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "door_open_toolong": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "update": {
+                "url": "http://host_name/update",
+                "verb": "POST",
+                "content": "message",
+                "disabled": false,
+                "nat": true
+            },
+            "temp_toohigh": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "temp_toolow": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "temp_normal": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "light_normal": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "too_bright": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "too_dark": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "cap_normal": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "too_dry": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "too_humid": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "water_detected": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "water_dried": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "motion_timedout": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "carried_away": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            },
+            "in_free_fall": {
+                "url": "http://",
+                "verb": null,
+                "content": null,
+                "disabled": true,
+                "nat": false
+            }
+        }
+    }
+    '''
+
+UPDATE_NOTIFICATION_CONFIG = {
+    "url": "http://10.10.0.2/api/events/update_tags",
+    "verb": "POST",
+    "content": "{\"name\":\"{0}\",\"id\":{1},\"temp\": {2}, \"cap\":{3},\"lux\":{4}}",
+    "disabled": False,
+    "nat": True
+}
