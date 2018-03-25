@@ -225,7 +225,7 @@ class SensorTag:
         # Water/Moisture Sensor supports water and temperature
         if self.tag_type == 32:
             return '{} temp: {} leak: {}'.format(self.name, self.temperature, self.is_leaking)
-        # LS Pro (8bit)
+        # ALS Pro (8bit)
         elif self.tag_type == 26:
             return '{} temp: {} humidity: {} lux: {}'.format(self.name, self.temperature, self.humidity, self.light)
 
