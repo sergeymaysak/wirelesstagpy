@@ -14,7 +14,7 @@ BASEURL = "https://www.mytaglist.com"
 
 SIGN_IN_URL = BASEURL + "/ethAccount.asmx/SignInEx"
 IS_SIGNED_IN_URL = BASEURL + "/ethAccount.asmx/IsSignedInEx"
-GET_TAGS_URL = BASEURL + "/ethClient.asmx/GetTagList"
+GET_TAGS_URL = BASEURL + "/ethClient.asmx/GetTagManagerTagList"
 
 ARM_MOTION_URL = BASEURL + "/ethClient.asmx/Arm"
 ARM_HUMIDITY_URL = BASEURL + "/ethClient.asmx/ArmCapSensor"

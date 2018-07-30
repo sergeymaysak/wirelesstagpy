@@ -60,6 +60,7 @@ class WirelessTags:
 
     def load_tags(self):
         """Load all registered tags."""
+        tags = []
         if self._needs_reload:
             cookies = self._auth_cookies
             try:
@@ -69,7 +70,10 @@ class WirelessTags:
                 self._last_load_time = time.time()
 
                 json_tags_spec = response.json()
-                tags = json_tags_spec['d']
+                tag_managers = json_tags_spec['d']
+                for tag_manager in tag_managers:
+                    for item in tag_manager['tags']:
+                        tags.append(item)
                 for tag in tags:
                     uuid = tag['uuid']
                     self._tags[uuid] = SensorTag(tag, self)
