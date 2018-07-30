@@ -176,6 +176,7 @@ TAGS_LIST_RESPONSE = '''
                     "v2flag": 26,
                     "batteryRemaining": 0.96
                 }
+                ]
             {
             "mac": "333344445555"
             tags: [
@@ -273,6 +274,7 @@ TAGS_LIST_RESPONSE = '''
                     "v2flag": 26,
                     "batteryRemaining": 0.96
                 }
+            ]
         ]
     }
     '''
