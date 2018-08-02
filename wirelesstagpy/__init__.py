@@ -5,12 +5,16 @@
 Simple python library for wirelesstags REST API.
 
 See http://wirelesstag.net/apidoc.html for more details.
-Current implementation is limited to loading info for all available to
-registered user sensor tags.
+Current implementation includes:
+- loading info for all available to user sensor tags
+- manage local push notifications
+- arm/disarm tags on monitoring for
+humidity, temp, light and motion
 mytaglist.com account credentials are needed to use this lib.
 Enabling tags sharing is not required.
 
-"Wireless Sensor Tags", "KumoSensor" and "Kumostat" are trademarks of Cao Gadgets LLC,
+"Wireless Sensor Tags", "KumoSensor" and "Kumostat" are
+trademarks of Cao Gadgets LLC,
 see www.wirelesstag.net for more information.
 I am in no way affiliated with Cao Gadgets LLC.
 
@@ -63,7 +67,8 @@ class WirelessTags:
         if self._needs_reload:
             cookies = self._auth_cookies
             try:
-                response = requests.post(self._GET_TAGS_URL, headers=self._HEADERS, cookies=cookies)
+                response = requests.post(
+                    self._GET_TAGS_URL, headers=self._HEADERS, cookies=cookies)
 
                 # remember time of load for cache/reload management
                 self._last_load_time = time.time()
@@ -112,10 +117,11 @@ class WirelessTags:
         """Arm light sensor to monitor changes."""
         return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL)
 
-    def install_push_notification(self, tag_id, notifications, apply_to_all=False):
+    def install_push_notification(
+            self, tag_id, notifications, apply_to_all=False):
         """Install set of push notifications for specified tag."""
         def list_to_spec(array):
-            """Sub-func to represent notifications as disctionary."""
+            """Sub-func to represent notifications as dictionary."""
             spec = {}
             for item in array:
                 spec[item.name] = item.spec
@@ -144,19 +150,21 @@ class WirelessTags:
                                      data=json.dumps(payload))
             succeed = "d" in response.json()
         except Exception as error:
-            _LOGGER.error("failed to save notifications configuration: %s - %s", tag_id, error)
+            _LOGGER.error("Failed to save notifications config: %s - %s",
+                          tag_id, error)
             succeed = False
 
         return succeed
 
     def fetch_push_notifications(self, tag_id):
-        """Read from tags manager current set of push notifications installed."""
+        """Read from tags manager current set of push notifications."""
         cookies = self._auth_cookies
         notifications = []
         try:
             payload = json.dumps({"id": tag_id})
-            response = requests.post(CONST.LOAD_EVENT_URL_CONFIG_URL, headers=self._HEADERS,
-                                     cookies=cookies, data=payload)
+            response = requests.post(
+                CONST.LOAD_EVENT_URL_CONFIG_URL, headers=self._HEADERS,
+                cookies=cookies, data=payload)
             json_notifications_spec = response.json()
             set_spec = json_notifications_spec['d']
             for name, spec in set_spec.items():
@@ -171,22 +179,27 @@ class WirelessTags:
         cookies = self._auth_cookies
         sensor_tag = None
         try:
-            payload = json.dumps({"id": tag_id} if own_payload is None else own_payload)
-            response = requests.post(url, headers=self._HEADERS, cookies=cookies, data=payload)
+            payload = json.dumps((
+                {"id": tag_id} if own_payload is None else own_payload))
+            response = requests.post(
+                url, headers=self._HEADERS, cookies=cookies, data=payload)
             json_tags_spec = response.json()
             tag = json_tags_spec['d']
             uuid = tag['uuid']
             self._tags[uuid] = SensorTag(tag, self)
             sensor_tag = self._tags[uuid]
         except Exception as error:
-            _LOGGER.error("failed to arm/disarm for tag id: %s - %s", tag_id, error)
+            _LOGGER.error("failed to arm/disarm for tag id: %s - %s",
+                          tag_id, error)
         return sensor_tag
 
     def _login(self):
         """Perform user login."""
-        auth = json.dumps({"email": self._username, "password": self._password})
+        auth = json.dumps({
+            "email": self._username, "password": self._password})
         try:
-            response = requests.post(self._SIGN_IN_URL, headers=self._HEADERS, data=auth)
+            response = requests.post(
+                self._SIGN_IN_URL, headers=self._HEADERS, data=auth)
             json_response = response.json()
 
             self._update_server_settings(json_response['d'])
@@ -194,7 +207,8 @@ class WirelessTags:
         except Exception as error:
             _LOGGER.debug("Failed to login to %s - %s", CONST.BASEURL, error)
             self._cookies = None
-            raise WirelessTagsException('Unable to login to wirelesstags.net - check your credentials')
+            raise WirelessTagsException("Unable to login to wirelesstags.net"
+                                        " - check your credentials")
 
         _LOGGER.info("Login successful")
 
@@ -212,7 +226,8 @@ class WirelessTags:
         if cookies is None:
             cookies = self._login()
         try:
-            response = requests.post(self._IS_SIGNED_IN_URL, headers=self._HEADERS, cookies=cookies)
+            response = requests.post(
+                self._IS_SIGNED_IN_URL, headers=self._HEADERS, cookies=cookies)
             json_response = response.json()
             if 'd' in json_response:
                 self._update_server_settings(json_response['d'])
@@ -237,5 +252,7 @@ class WirelessTags:
     def __str__(self):
         """Return string representation of wirelesstags platform."""
         temperature_str = 'celsius' if self.use_celsius else 'fahrenheit'
-        return 'WirelessTagsPlatform: using {}, update interval: {} server time: {} tags: {}'\
-            .format(temperature_str, self._postback_interval, self._server_time, self._tags)
+        return "WirelessTagsPlatform: using {}," \
+               "update interval: {} server time: {} tags: {}"\
+               .format(temperature_str, self._postback_interval,
+                       self._server_time, self._tags)

@@ -102,3 +102,4 @@ ENV/
 
 VSCode project
 .vscode/
+.pytest_cache/v/cache/nodeids
