@@ -138,7 +138,7 @@ class SensorTag:
     def is_humidity_sensor_armed(self):
         """Return True if tag armed and listens to humidity changes events."""
         cap_state = self.humidity_sensor_state
-        return cap_state != 0 and cap_state != 1
+        return cap_state not in [0, 1]
 
     @property
     def moisture_sensor_state(self):
@@ -173,7 +173,7 @@ class SensorTag:
     def is_light_sensor_armed(self):
         """Return True if tag armed and listens to light changes evens."""
         light_state = self.light_sensor_state
-        return light_state != 0 and light_state != 1
+        return light_state not in [0, 1]
 
     @property
     def is_moved(self):
