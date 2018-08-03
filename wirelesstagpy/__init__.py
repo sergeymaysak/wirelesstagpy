@@ -121,7 +121,7 @@ class WirelessTags:
         return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL, mac)
 
     def install_push_notification(
-            self, tag_id, notifications, apply_to_all=False):
+            self, tag_id, notifications, apply_to_all=False, tag_manager_mac=None):
         """Install set of push notifications for specified tag."""
         def list_to_spec(array):
             """Sub-func to represent notifications as dictionary."""
@@ -146,9 +146,9 @@ class WirelessTags:
                 "applyAll": apply_to_all,
                 "id": tag_id if not apply_to_all else -1
             }
-
+            headers = self._headers_for_mac(tag_manager_mac)
             response = requests.post(CONST.SAVE_EVENT_URL_CONFIG_URL,
-                                     headers=self._HEADERS,
+                                     headers=headers,
                                      cookies=cookies,
                                      data=json.dumps(payload))
             succeed = "d" in response.json()
@@ -159,14 +159,15 @@ class WirelessTags:
 
         return succeed
 
-    def fetch_push_notifications(self, tag_id):
+    def fetch_push_notifications(self, tag_id, tag_manager_mac=None):
         """Read from tags manager current set of push notifications."""
         cookies = self._auth_cookies
         notifications = []
         try:
             payload = json.dumps({"id": tag_id})
+            headers = self._headers_for_mac(tag_manager_mac)
             response = requests.post(
-                CONST.LOAD_EVENT_URL_CONFIG_URL, headers=self._HEADERS,
+                CONST.LOAD_EVENT_URL_CONFIG_URL, headers=headers,
                 cookies=cookies, data=payload)
             json_notifications_spec = response.json()
             set_spec = json_notifications_spec['d']
@@ -184,12 +185,7 @@ class WirelessTags:
         try:
             payload = json.dumps((
                 {"id": tag_id} if own_payload is None else own_payload))
-
-            headers = self._HEADERS
-            # combination of tag_id and X-Set-Mac header with mac
-            # allows to uniquely identify tag across multiple tag managers
-            if tag_manager_mac is not None:
-                headers['X-Set-Mac'] = tag_manager_mac
+            headers = self._headers_for_mac(tag_manager_mac)
             response = requests.post(
                 url, headers=headers, cookies=cookies, data=payload)
             json_tags_spec = response.json()
@@ -201,6 +197,15 @@ class WirelessTags:
             _LOGGER.error("failed to arm/disarm for tag id: %s - %s",
                           tag_id, error)
         return sensor_tag
+
+    def _headers_for_mac(self, tag_manager_mac):
+        """Build headers for http request."""
+        headers = self._HEADERS
+        # combination of tag_id and X-Set-Mac header with mac
+        # allows to uniquely identify tag across multiple tag managers
+        if tag_manager_mac is not None:
+            headers['X-Set-Mac'] = tag_manager_mac
+        return headers
 
     def _login(self):
         """Perform user login."""
