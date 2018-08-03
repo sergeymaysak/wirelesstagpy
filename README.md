@@ -84,6 +84,9 @@ sensor = api.arm_humidity(1)
 # Disarm it
 sensor = api.disarm_humidity(1)
 
+# Specify tag manager if you have multiple tag managers
+sensor = api.arm_humidity(sensor.tag_id, sensor.tag_manager_mac)
+
 ```
 
 ## Disclaimer
