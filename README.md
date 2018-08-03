@@ -59,8 +59,12 @@ notifications = [
 ]
 
 # install notification for tag with id=1 only
+# use it you have only one tag manager
 succeed = api.install_push_notification(1, notifications, False)
 
+# if you have multiple tag managers you need specify its 'mac' stored in each tag as following
+succeed = api.install_push_notification(sensor.tag_id, notifications, False,
+                                        sensor.tag_manager_mac)
 ```
 
 ## Arm/Disarm sensor monitoring for specific event
