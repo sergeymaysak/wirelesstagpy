@@ -3,6 +3,8 @@
 ALS_PRO = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 26,
     "eventState": 2,
@@ -19,6 +21,8 @@ ALS_PRO = {
 BITS13 = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 13,
     "eventState": 3,
@@ -35,6 +39,8 @@ BITS13 = {
 WATERSENSOR = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 32,
     "eventState": 0,
@@ -80,7 +86,11 @@ TAGS_LIST_RESPONSE = '''
         {
         "d": [
             {
-                "__type": "MyTagList.Tag",
+                "__type": "MyTagList.Tag2",
+                "managerName": "#manager_1",
+                "mac": "0D0D0D0D0D0D",
+                "dbid": 2,
+                "mirrors": [],
                 "notificationJS": null,
                 "name": "Kitchen",
                 "uuid": "fake-1111-2222-3333-111111111111",
@@ -127,8 +137,9 @@ TAGS_LIST_RESPONSE = '''
                 "batteryRemaining": 0.97
             },
             {
-                "__type": "MyTagList.Tag",
-                "notificationJS": null,
+                "__type": "MyTagList.Tag2",
+                "managerName": "#manager_1",
+                "mac": "0D0D0D0D0D0D",
                 "name": "Hall",
                 "uuid": "fake-1111-2222-4444-111111111111",
                 "comment": "",

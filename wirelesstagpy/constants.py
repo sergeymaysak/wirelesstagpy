@@ -10,11 +10,11 @@ PATCH_VERSION = 0
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
 HEADERS = {"content-type": "application/json; charset=utf-8"}
-BASEURL = "https://www.mytaglist.com"
+BASEURL = "https://my.wirelesstag.net"
 
 SIGN_IN_URL = BASEURL + "/ethAccount.asmx/SignInEx"
 IS_SIGNED_IN_URL = BASEURL + "/ethAccount.asmx/IsSignedInEx"
-GET_TAGS_URL = BASEURL + "/ethClient.asmx/GetTagList"
+GET_TAGS_URL = BASEURL + "/ethClient.asmx/GetTagList2"
 
 ARM_MOTION_URL = BASEURL + "/ethClient.asmx/Arm"
 ARM_HUMIDITY_URL = BASEURL + "/ethClient.asmx/ArmCapSensor"

@@ -77,45 +77,48 @@ class WirelessTags:
                 tags = json_tags_spec['d']
                 for tag in tags:
                     uuid = tag['uuid']
-                    self._tags[uuid] = SensorTag(tag, self)
+                    # save mac - a unique identifier of specific tag manager
+                    mac = tag['mac'] if 'mac' in tag else None
+                    self._tags[uuid] = SensorTag(tag, self, mac)
                 _LOGGER.info("tags reloaded at: %s", datetime.now())
             except Exception as error:
                 _LOGGER.error("failed to load tags - %s", error)
 
         return self._tags
 
-    def arm_motion(self, tag_id):
+    def arm_motion(self, tag_id, mac=None):
         """Arm motion sensor to monitor changes."""
         payload = {"id": tag_id, "door_mode_set_closed": True}
-        return self._arm_control_tag(tag_id, CONST.ARM_MOTION_URL, payload)
+        return self._arm_control_tag(tag_id, CONST.ARM_MOTION_URL,
+                                     mac, payload)
 
-    def arm_temperature(self, tag_id):
+    def arm_temperature(self, tag_id, mac=None):
         """Arm temperature sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_TEMPERATURE_URL, mac)
 
-    def arm_humidity(self, tag_id):
+    def arm_humidity(self, tag_id, mac=None):
         """Arm humidity sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_HUMIDITY_URL, mac)
 
-    def arm_light(self, tag_id):
+    def arm_light(self, tag_id, mac=None):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_LIGHT_URL, mac)
 
-    def disarm_motion(self, tag_id):
+    def disarm_motion(self, tag_id, mac=None):
         """Disarm motion sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_MOTION_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_MOTION_URL, mac)
 
-    def disarm_temperature(self, tag_id):
+    def disarm_temperature(self, tag_id, mac=None):
         """Disarm temperature sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_TEMPERATURE_URL, mac)
 
-    def disarm_humidity(self, tag_id):
+    def disarm_humidity(self, tag_id, mac=None):
         """Disarm humidity sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_HUMIDITY_URL, mac)
 
-    def disarm_light(self, tag_id):
+    def disarm_light(self, tag_id, mac=None):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL, mac)
 
     def install_push_notification(
             self, tag_id, notifications, apply_to_all=False):
@@ -174,19 +177,25 @@ class WirelessTags:
             _LOGGER.error("failed to fetch : %s - %s", tag_id, error)
         return notifications
 
-    def _arm_control_tag(self, tag_id, url, own_payload=None):
+    def _arm_control_tag(self, tag_id, url, tag_manager_mac=None, own_payload=None):
         """Arm sensor with specified id and url to monitor changes."""
         cookies = self._auth_cookies
         sensor_tag = None
         try:
             payload = json.dumps((
                 {"id": tag_id} if own_payload is None else own_payload))
+
+            headers = self._HEADERS
+            # combination of tag_id and X-Set-Mac header with mac
+            # allows to uniquely identify tag across multiple tag managers
+            if tag_manager_mac is not None:
+                headers['X-Set-Mac'] = tag_manager_mac
             response = requests.post(
-                url, headers=self._HEADERS, cookies=cookies, data=payload)
+                url, headers=headers, cookies=cookies, data=payload)
             json_tags_spec = response.json()
             tag = json_tags_spec['d']
             uuid = tag['uuid']
-            self._tags[uuid] = SensorTag(tag, self)
+            self._tags[uuid] = SensorTag(tag, self, tag_manager_mac)
             sensor_tag = self._tags[uuid]
         except Exception as error:
             _LOGGER.error("failed to arm/disarm for tag id: %s - %s",

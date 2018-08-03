@@ -47,6 +47,7 @@ class TestWirelessTags(unittest.TestCase):
 
             self.assertIsNotNone(sensor.name)
             self.assertIsNotNone(sensor.uuid)
+            self.assertIsNotNone(sensor.tag_manager_mac)
             self.assertTrue(sensor.in_celcius)
 
             self.assertIsNotNone(sensor.temperature)
@@ -78,7 +79,7 @@ class TestWirelessTags(unittest.TestCase):
 
     def test_alspro_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.ALS_PRO, self.platform)
+        tag = SensorTag(MOCK.ALS_PRO, self.platform, '0d0d0d0d0d0d')
         self.assertTrue(tag.is_moved)
         self.assertFalse(tag.is_door_open)
         self.assertTrue(tag.is_cold)
@@ -89,10 +90,11 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(tag.is_light_on)
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     def test_water_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.WATERSENSOR, self.platform)
+        tag = SensorTag(MOCK.WATERSENSOR, self.platform, '0d0d0d0d0d0d')
         self.assertFalse(tag.is_moved)
         self.assertFalse(tag.is_door_open)
         self.assertFalse(tag.is_cold)
@@ -103,10 +105,11 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_light_on)
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     def test_13bit_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.BITS13, self.platform)
+        tag = SensorTag(MOCK.BITS13, self.platform, '0d0d0d0d0d0d')
         self.assertFalse(tag.is_moved)
         self.assertTrue(tag.is_door_open)
         self.assertFalse(tag.is_cold)
@@ -117,6 +120,7 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_light_on)
         self.assertTrue(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     @requests_mock.mock()
     def test_failed_login(self, m):
@@ -163,6 +167,24 @@ class TestWirelessTags(unittest.TestCase):
 
         sensor = self.platform.disarm_motion(1)
         self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_motion_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_motion_with_mac(self, m):
+        """Verify arm/disarm basic behaviour."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_MOTION_URL, text=MOCK.ARM_MOTION_RESPONSE)
+        m.post(CONST.DISARM_MOTION_URL, text=MOCK.DISARM_MOTION_RESPONSE)
+
+        sensor = self.platform.arm_motion(1, '0d0d0d0d0d0d')
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertEqual(sensor.tag_manager_mac, '0d0d0d0d0d0d')
+        self.assertTrue(sensor.is_motion_sensor_armed)
+
+        sensor = self.platform.disarm_motion(1, '0d0d0d0d0d0d')
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertEqual(sensor.tag_manager_mac, '0d0d0d0d0d0d')
         self.assertFalse(sensor.is_motion_sensor_armed)
 
     @requests_mock.mock()

@@ -17,7 +17,7 @@ import wirelesstagpy.utils as UTILS
 class SensorTag:
     """Model representing single wireless sensor tag."""
 
-    def __init__(self, info, platform):
+    def __init__(self, info, platform, mac=None):
         """Init with dictionary and parent WirelessTagPlatform."""
         self._info = info
         self._api = platform
@@ -30,6 +30,9 @@ class SensorTag:
 
         # ambient light - working range: 0.1 lux to 200,000 lux
         self.light = self._info['lux']
+
+        # mac address of tag manager this instance belong to
+        self.tag_manager_mac = mac
 
     @property
     def in_celcius(self):
