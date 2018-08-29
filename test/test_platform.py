@@ -313,3 +313,41 @@ class TestWirelessTags(unittest.TestCase):
         ]
         result = self.platform.install_push_notification(1, notifications, False)
         self.assertFalse(result)
+
+    def test_leak_binary_event(self):
+        """Test water leak binary events logic."""
+        mac = '0d0d0d0d0d0d'
+        tag = SensorTag(MOCK.WATERSENSOR, self.platform, mac)
+
+        event = tag.event_for_type(CONST.EVENT_WET)
+        self.assertIsNone(event)
+
+        event = tag.event_for_type(CONST.EVENT_MOISTURE)
+        self.assertIsNotNone(event)
+        self.assertTrue(event.is_state_on)
+
+        url = 'http://10.10.0.2/api/events/update_tags'
+        notifications = event.build_notifications(url, mac)
+        self.assertTrue(len(notifications) == 2)
+
+        config = notifications[0]
+        self.assertTrue(config.name == 'water_detected')
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+        self.assertTrue(config.url == url)
+        self.assertTrue(config.verb == 'POST')
+
+    def test_motion_binary_event(self):
+        """Test motion binary event for PIR sensor."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        event = tag.event_for_type(CONST.EVENT_MOTION)
+        self.assertIsNotNone(event)
+        self.assertFalse(event.is_state_on)
+
+        url = 'http://10.10.0.2/api/events/update_tags'
+        notifications = event.build_notifications(url, mac)
+        self.assertTrue(len(notifications) == 1)
+
+        config = notifications[0]
+        self.assertTrue(config.name == 'motion_detected')
