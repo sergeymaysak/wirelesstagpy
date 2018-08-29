@@ -331,11 +331,11 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(len(notifications) == 2)
 
         config = notifications[0]
-        self.assertTrue(config.name == 'water_detected')
+        self.assertEqual(config.name, 'water_detected')
         self.assertTrue(config.is_enabled)
         self.assertTrue(config.is_local)
-        self.assertTrue(config.url == url)
-        self.assertTrue(config.verb == 'POST')
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
 
     def test_motion_binary_event(self):
         """Test motion binary event for PIR sensor."""
@@ -350,4 +350,8 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(len(notifications) == 1)
 
         config = notifications[0]
-        self.assertTrue(config.name == 'motion_detected')
+        self.assertEqual(config.name, 'motion_detected')
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
