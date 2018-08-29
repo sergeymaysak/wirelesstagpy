@@ -48,7 +48,6 @@ class TestWirelessTags(unittest.TestCase):
             self.assertIsNotNone(sensor.name)
             self.assertIsNotNone(sensor.uuid)
             self.assertIsNotNone(sensor.tag_manager_mac)
-            self.assertTrue(sensor.in_celcius)
 
             self.assertIsNotNone(sensor.temperature)
             self.assertTrue(isinstance(sensor.temperature, float))
@@ -62,7 +61,7 @@ class TestWirelessTags(unittest.TestCase):
             self.assertIsNotNone(sensor.tag_type)
             self.assertIsNotNone(sensor.comment)
             self.assertIsNotNone(sensor.is_alive)
-            self.assertIsNotNone(sensor.signal_straight)
+            self.assertIsNotNone(sensor.signal_strength)
             self.assertIsNotNone(sensor.beep_option)
             self.assertIsNotNone(sensor.is_in_range)
             self.assertIsNotNone(sensor.hw_revision)

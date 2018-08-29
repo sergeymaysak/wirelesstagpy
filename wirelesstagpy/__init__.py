@@ -62,6 +62,9 @@ class WirelessTags:
         # server time in utc (filetime format)
         self._server_time = 0
 
+        # array of tag managers mac addresses
+        self.mac_addresses = []
+
     def load_tags(self):
         """Load all registered tags."""
         if self._needs_reload:
@@ -80,7 +83,8 @@ class WirelessTags:
                     # save mac - a unique identifier of specific tag manager
                     mac = tag['mac'] if 'mac' in tag else None
                     self._tags[uuid] = SensorTag(tag, self, mac)
-                _LOGGER.info("tags reloaded at: %s", datetime.now())
+                    self._register_mac(mac)
+                _LOGGER.info("Tags reloaded at: %s", datetime.now())
             except Exception as error:
                 _LOGGER.error("failed to load tags - %s", error)
 
@@ -262,6 +266,10 @@ class WirelessTags:
     def _needs_reload(self):
         elapsed = time.time() - self._last_load_time
         return elapsed > self._postback_interval
+
+    def _register_mac(self, mac):
+        if mac not in self.mac_addresses:
+            self.mac_addresses.append(mac)
 
     def __str__(self):
         """Return string representation of wirelesstags platform."""
