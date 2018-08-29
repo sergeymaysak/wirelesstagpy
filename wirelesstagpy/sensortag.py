@@ -70,8 +70,8 @@ class SensorTag:
         return self._info['alive']
 
     @property
-    def signal_straight(self):
-        """Int with signal straight."""
+    def signal_strength(self):
+        """Int with signal strength."""
         return self._info['signaldBm']
 
     @property
