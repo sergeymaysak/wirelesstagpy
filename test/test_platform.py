@@ -331,7 +331,7 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(len(notifications) == 2)
 
         config = notifications[0]
-        self.assertEqual(config.name, 'water_detected')
+        self.assertTrue(config.name in ['water_detected', 'water_dried'])
         self.assertTrue(config.is_enabled)
         self.assertTrue(config.is_local)
         self.assertEqual(config.url, url)
