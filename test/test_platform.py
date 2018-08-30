@@ -355,3 +355,17 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(config.is_local)
         self.assertEqual(config.url, url)
         self.assertEqual(config.verb, 'POST')
+
+    def test_sensors(self):
+        """Test sensors supported by tag."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        sensor = tag.sensor_for_type(CONST.SENSOR_TEMPERATURE)
+        self.assertIsNotNone(sensor)
+        self.assertEqual(sensor.value, 23.924919128417969)
+
+        event = {'name': 'Kitchen', 'id': 8,
+                 'temp': 24.1517391204834, 'cap': 0,
+                 'lux': 0, 'mac': '12'}
+        value = sensor.value_from_update_event(event)
+        self.assertEqual(value, 24.1517391204834)
