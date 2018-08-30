@@ -18,6 +18,7 @@ import wirelesstagpy.constants as CONST
 from wirelesstagpy.binaryevent import (
     BinaryEvent,
     BINARY_EVENT_SPECS)
+from wirelesstagpy.sensor import Sensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,8 +42,13 @@ class SensorTag:
         # mac address of tag manager this instance belong to
         self.tag_manager_mac = mac
 
-        # events_specs
+        # binary events specs - built in lazy fashion
+        # key - binary event type, value - instance of BinaryEvent
         self._event_specs = {}
+
+        # spec sensors entities
+        # key - sensor type, value - instance of Sensor
+        self._sensors_spec = {}
 
     @property
     def battery_remaining(self):
@@ -309,6 +315,18 @@ class SensorTag:
         return (
             sensors_per_tag_type[tag_type] if tag_type in sensors_per_tag_type
             else all_sensors)
+
+    def sensor_for_type(self, sensor_type):
+        """Return sensor for specified type or None if not supported by tag."""
+        if sensor_type not in self.allowed_sensor_types:
+            return None
+
+        if sensor_type in self._sensors_spec:
+            return self._sensors_spec[sensor_type]
+        else:
+            sensor = Sensor.make_sensor(sensor_type, self)
+            self._sensors_spec[sensor_type] = sensor
+            return sensor
 
     @property
     def allowed_monitoring_types(self):

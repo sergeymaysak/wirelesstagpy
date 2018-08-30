@@ -19,6 +19,14 @@ class NotificationConfig:
                           'content': content,
                           'disabled': False, 'nat': True})
 
+    @classmethod
+    def make_config_for_update_event(cls, url, mac):
+        """Create local push notification for update sensor data."""
+        content = ("{\"name\":\"{0}\",\"id\":{1},\"temp\":{2}," +
+                   "\"cap\":{3},\"lux\":{4},\"mac\":\"" + mac +
+                   "\"}")
+        return cls.make_post_local('update', url, content)
+
     def __init__(self, name, spec):
         """Init with name of event and dictionary."""
         self.name = name

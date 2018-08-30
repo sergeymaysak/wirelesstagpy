@@ -66,7 +66,7 @@ EVENT_MOISTURE = 'moisture'
 # On means tag battery is low, Off means normal
 EVENT_BATTERY = 'battery'
 
-# supported sensor metrics
+# supported sensor types
 SENSOR_TEMPERATURE = 'temperature'
 SENSOR_HUMIDITY = 'humidity'
 SENSOR_MOISTURE = 'moisture'
