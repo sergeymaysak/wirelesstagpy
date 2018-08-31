@@ -342,6 +342,8 @@ class TestWirelessTags(unittest.TestCase):
         mac = '12'
         tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
         event = tag.event[CONST.EVENT_MOTION]
+        same_event = tag.event[CONST.EVENT_MOTION]
+        self.assertTrue(event == same_event)
         self.assertIsNotNone(event)
         self.assertFalse(event.is_state_on)
 
@@ -356,16 +358,53 @@ class TestWirelessTags(unittest.TestCase):
         self.assertEqual(config.url, url)
         self.assertEqual(config.verb, 'POST')
 
+    def test_make_update_event(self):
+        """Test logic to create update event push notification."""
+        url = 'https://update/tag'
+        mac = '12'
+        config = NotificationConfig.make_config_for_update_event(url, mac)
+        self.assertIsNotNone(config)
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+
     def test_sensors(self):
         """Test sensors supported by tag."""
         mac = '12'
         tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
         sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
+        same_sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
         self.assertIsNotNone(sensor)
+        self.assertTrue(sensor == same_sensor)
         self.assertEqual(sensor.value, 23.924919128417969)
+        self.assertIsNotNone(str(sensor))
 
         event = {'name': 'Kitchen', 'id': 8,
                  'temp': 24.1517391204834, 'cap': 0,
                  'lux': 0, 'mac': '12'}
         value = sensor.value_from_update_event(event)
         self.assertEqual(value, 24.1517391204834)
+
+        value = sensor.value_from_update_event({'name': 'no-exist'})
+        self.assertEqual(value, 0)
+
+        no_sensor = tag.sensor[CONST.SENSOR_LIGHT]
+        self.assertIsNone(no_sensor)
+
+    def test_switches(self):
+        """Test allowed monitoring entities."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        switch_types = tag.allowed_monitoring_types
+        self.assertIn(CONST.ARM_TEMPERATURE, switch_types)
+        self.assertIn(CONST.ARM_HUMIDITY, switch_types)
+        self.assertIn(CONST.ARM_MOTION, switch_types)
+
+    def test_no_sensor_for_subscription(self):
+        """Test for non-existing attribute."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        with self.assertRaises(AttributeError):
+            no_message = tag.message
+            print('message: {}'.format(no_message))
