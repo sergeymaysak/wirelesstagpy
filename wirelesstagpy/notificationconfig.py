@@ -12,6 +12,21 @@ Creation Date: 3/20/2018
 class NotificationConfig:
     """Model representing push notification configuration for single tag."""
 
+    @classmethod
+    def make_post_local(cls, name, url, content):
+        """Create local push notification using POST http verb."""
+        return cls(name, {'url': url, 'verb': 'POST',
+                          'content': content,
+                          'disabled': False, 'nat': True})
+
+    @classmethod
+    def make_config_for_update_event(cls, url, mac):
+        """Create local push notification for update sensor data."""
+        content = ("{\"name\":\"{0}\",\"id\":{1},\"temp\":{2}," +
+                   "\"cap\":{3},\"lux\":{4},\"mac\":\"" + mac +
+                   "\"}")
+        return cls.make_post_local('update', url, content)
+
     def __init__(self, name, spec):
         """Init with name of event and dictionary."""
         self.name = name

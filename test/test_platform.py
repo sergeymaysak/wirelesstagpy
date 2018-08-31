@@ -47,7 +47,7 @@ class TestWirelessTags(unittest.TestCase):
 
             self.assertIsNotNone(sensor.name)
             self.assertIsNotNone(sensor.uuid)
-            self.assertTrue(sensor.in_celcius)
+            self.assertIsNotNone(sensor.tag_manager_mac)
 
             self.assertIsNotNone(sensor.temperature)
             self.assertTrue(isinstance(sensor.temperature, float))
@@ -61,7 +61,7 @@ class TestWirelessTags(unittest.TestCase):
             self.assertIsNotNone(sensor.tag_type)
             self.assertIsNotNone(sensor.comment)
             self.assertIsNotNone(sensor.is_alive)
-            self.assertIsNotNone(sensor.signal_straight)
+            self.assertIsNotNone(sensor.signal_strength)
             self.assertIsNotNone(sensor.beep_option)
             self.assertIsNotNone(sensor.is_in_range)
             self.assertIsNotNone(sensor.hw_revision)
@@ -78,7 +78,7 @@ class TestWirelessTags(unittest.TestCase):
 
     def test_alspro_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.ALS_PRO, self.platform)
+        tag = SensorTag(MOCK.ALS_PRO, self.platform, '0d0d0d0d0d0d')
         self.assertTrue(tag.is_moved)
         self.assertFalse(tag.is_door_open)
         self.assertTrue(tag.is_cold)
@@ -89,10 +89,11 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(tag.is_light_on)
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     def test_water_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.WATERSENSOR, self.platform)
+        tag = SensorTag(MOCK.WATERSENSOR, self.platform, '0d0d0d0d0d0d')
         self.assertFalse(tag.is_moved)
         self.assertFalse(tag.is_door_open)
         self.assertFalse(tag.is_cold)
@@ -103,10 +104,11 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_light_on)
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     def test_13bit_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
-        tag = SensorTag(MOCK.BITS13, self.platform)
+        tag = SensorTag(MOCK.BITS13, self.platform, '0d0d0d0d0d0d')
         self.assertFalse(tag.is_moved)
         self.assertTrue(tag.is_door_open)
         self.assertFalse(tag.is_cold)
@@ -117,6 +119,7 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_light_on)
         self.assertTrue(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
+        self.assertIsNotNone(tag.tag_manager_mac)
 
     @requests_mock.mock()
     def test_failed_login(self, m):
@@ -163,6 +166,24 @@ class TestWirelessTags(unittest.TestCase):
 
         sensor = self.platform.disarm_motion(1)
         self.assertEqual(sensor.tag_id, 1)
+        self.assertFalse(sensor.is_motion_sensor_armed)
+
+    @requests_mock.mock()
+    def test_arm_disarm_motion_with_mac(self, m):
+        """Verify arm/disarm basic behaviour."""
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.ARM_MOTION_URL, text=MOCK.ARM_MOTION_RESPONSE)
+        m.post(CONST.DISARM_MOTION_URL, text=MOCK.DISARM_MOTION_RESPONSE)
+
+        sensor = self.platform.arm_motion(1, '0d0d0d0d0d0d')
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertEqual(sensor.tag_manager_mac, '0d0d0d0d0d0d')
+        self.assertTrue(sensor.is_motion_sensor_armed)
+
+        sensor = self.platform.disarm_motion(1, '0d0d0d0d0d0d')
+        self.assertEqual(sensor.tag_id, 1)
+        self.assertEqual(sensor.tag_manager_mac, '0d0d0d0d0d0d')
         self.assertFalse(sensor.is_motion_sensor_armed)
 
     @requests_mock.mock()
@@ -292,3 +313,98 @@ class TestWirelessTags(unittest.TestCase):
         ]
         result = self.platform.install_push_notification(1, notifications, False)
         self.assertFalse(result)
+
+    def test_leak_binary_event(self):
+        """Test water leak binary events logic."""
+        mac = '0d0d0d0d0d0d'
+        tag = SensorTag(MOCK.WATERSENSOR, self.platform, mac)
+
+        event = tag.event[CONST.EVENT_WET]
+        self.assertIsNone(event)
+
+        event = tag.event[CONST.EVENT_MOISTURE]
+        self.assertIsNotNone(event)
+        self.assertTrue(event.is_state_on)
+
+        url = 'http://10.10.0.2/api/events/update_tags'
+        notifications = event.build_notifications(url, mac)
+        self.assertTrue(len(notifications) == 2)
+
+        config = notifications[0]
+        self.assertTrue(config.name in ['water_detected', 'water_dried'])
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
+
+    def test_motion_binary_event(self):
+        """Test motion binary event for PIR sensor."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        event = tag.event[CONST.EVENT_MOTION]
+        same_event = tag.event[CONST.EVENT_MOTION]
+        self.assertTrue(event == same_event)
+        self.assertIsNotNone(event)
+        self.assertFalse(event.is_state_on)
+
+        url = 'http://10.10.0.2/api/events/update_tags'
+        notifications = event.build_notifications(url, mac)
+        self.assertTrue(len(notifications) == 1)
+
+        config = notifications[0]
+        self.assertEqual(config.name, 'motion_detected')
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
+
+    def test_make_update_event(self):
+        """Test logic to create update event push notification."""
+        url = 'https://update/tag'
+        mac = '12'
+        config = NotificationConfig.make_config_for_update_event(url, mac)
+        self.assertIsNotNone(config)
+        self.assertEqual(config.url, url)
+        self.assertEqual(config.verb, 'POST')
+        self.assertTrue(config.is_enabled)
+        self.assertTrue(config.is_local)
+
+    def test_sensors(self):
+        """Test sensors supported by tag."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
+        same_sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
+        self.assertIsNotNone(sensor)
+        self.assertTrue(sensor == same_sensor)
+        self.assertEqual(sensor.value, 23.924919128417969)
+        self.assertIsNotNone(str(sensor))
+
+        event = {'name': 'Kitchen', 'id': 8,
+                 'temp': 24.1517391204834, 'cap': 0,
+                 'lux': 0, 'mac': '12'}
+        value = sensor.value_from_update_event(event)
+        self.assertEqual(value, 24.1517391204834)
+
+        value = sensor.value_from_update_event({'name': 'no-exist'})
+        self.assertEqual(value, 0)
+
+        no_sensor = tag.sensor[CONST.SENSOR_LIGHT]
+        self.assertIsNone(no_sensor)
+
+    def test_switches(self):
+        """Test allowed monitoring entities."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        switch_types = tag.allowed_monitoring_types
+        self.assertIn(CONST.ARM_TEMPERATURE, switch_types)
+        self.assertIn(CONST.ARM_HUMIDITY, switch_types)
+        self.assertIn(CONST.ARM_MOTION, switch_types)
+
+    def test_no_sensor_for_subscription(self):
+        """Test for non-existing attribute."""
+        mac = '12'
+        tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
+        with self.assertRaises(AttributeError):
+            no_message = tag.message
+            print('message: {}'.format(no_message))
