@@ -3,6 +3,8 @@
 ALS_PRO = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 26,
     "eventState": 2,
@@ -19,6 +21,8 @@ ALS_PRO = {
 BITS13 = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 13,
     "eventState": 3,
@@ -35,6 +39,8 @@ BITS13 = {
 WATERSENSOR = {
     "name": "Kitchen",
     "uuid": "fake-1111-2222-4444-111111111111",
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
     "slaveId": 1,
     "tagType": 32,
     "eventState": 0,
@@ -46,6 +52,57 @@ WATERSENSOR = {
     "cap": 87,
     "batteryVolt": 3.05576890659684,
     "LBTh": 2.55
+}
+
+PIRSENSOR = {
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
+    "dbid": 2,
+    "mirrors": [],
+    "notificationJS": None,
+    "name": "Kitchen",
+    "uuid": "fake-1111-2222-4444-111111111111",
+    "comment": "",
+    "slaveId": 0,
+    "tagType": 72,
+    "lastComm": 131800485874363197,
+    "alive": True,
+    "signaldBm": -74,
+    "batteryVolt": 3.0030006908937366,
+    "beeping": False,
+    "lit": False,
+    "migrationPending": False,
+    "beepDurationDefault": 15,
+    "eventState": 6,
+    "tempEventState": 1,
+    "OutOfRange": False,
+    "lux": 0,
+    "temperature": 23.924919128417969,
+    "tempCalOffset": 0,
+    "capCalOffset": 0,
+    "image_md5": None,
+    "cap": 48.6875,
+    "capRaw": 0,
+    "az2": 0,
+    "capEventState": 0,
+    "lightEventState": 0,
+    "shorted": False,
+    "thermostat": None,
+    "playback": None,
+    "postBackInterval": 600,
+    "rev": 175,
+    "version1": 2,
+    "freqOffset": -15,
+    "freqCalApplied": 4530,
+    "reviveEvery": 4,
+    "oorGrace": 2,
+    "LBTh": 2.55,
+    "enLBN": True,
+    "txpwr": 16,
+    "rssiMode": True,
+    "ds18": False,
+    "v2flag": 18,
+    "batteryRemaining": 0.95
 }
 
 LOGIN_RESPONSE = '''
@@ -80,7 +137,11 @@ TAGS_LIST_RESPONSE = '''
         {
         "d": [
             {
-                "__type": "MyTagList.Tag",
+                "__type": "MyTagList.Tag2",
+                "managerName": "#manager_1",
+                "mac": "0D0D0D0D0D0D",
+                "dbid": 2,
+                "mirrors": [],
                 "notificationJS": null,
                 "name": "Kitchen",
                 "uuid": "fake-1111-2222-3333-111111111111",
@@ -127,8 +188,9 @@ TAGS_LIST_RESPONSE = '''
                 "batteryRemaining": 0.97
             },
             {
-                "__type": "MyTagList.Tag",
-                "notificationJS": null,
+                "__type": "MyTagList.Tag2",
+                "managerName": "#manager_1",
+                "mac": "0D0D0D0D0D0D",
                 "name": "Hall",
                 "uuid": "fake-1111-2222-4444-111111111111",
                 "comment": "",

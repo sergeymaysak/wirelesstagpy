@@ -11,6 +11,8 @@ disable=
   too-many-instance-attributes,
   too-many-public-methods,
   too-few-public-methods,
-  too-many-locals
+  too-many-locals,
+  no-else-return,
+  no-member
   
 ignored-modules=distutils,distutils.util

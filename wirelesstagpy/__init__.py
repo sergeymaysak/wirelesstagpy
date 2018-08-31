@@ -5,12 +5,16 @@
 Simple python library for wirelesstags REST API.
 
 See http://wirelesstag.net/apidoc.html for more details.
-Current implementation is limited to loading info for all available to
-registered user sensor tags.
+Current implementation includes:
+- loading info for all available to user sensor tags
+- manage local push notifications
+- arm/disarm tags on monitoring for
+humidity, temp, light and motion
 mytaglist.com account credentials are needed to use this lib.
 Enabling tags sharing is not required.
 
-"Wireless Sensor Tags", "KumoSensor" and "Kumostat" are trademarks of Cao Gadgets LLC,
+"Wireless Sensor Tags", "KumoSensor" and "Kumostat" are
+trademarks of Cao Gadgets LLC,
 see www.wirelesstag.net for more information.
 I am in no way affiliated with Cao Gadgets LLC.
 
@@ -58,12 +62,16 @@ class WirelessTags:
         # server time in utc (filetime format)
         self._server_time = 0
 
+        # array of tag managers mac addresses
+        self.mac_addresses = []
+
     def load_tags(self):
         """Load all registered tags."""
         if self._needs_reload:
             cookies = self._auth_cookies
             try:
-                response = requests.post(self._GET_TAGS_URL, headers=self._HEADERS, cookies=cookies)
+                response = requests.post(
+                    self._GET_TAGS_URL, headers=self._HEADERS, cookies=cookies)
 
                 # remember time of load for cache/reload management
                 self._last_load_time = time.time()
@@ -72,50 +80,55 @@ class WirelessTags:
                 tags = json_tags_spec['d']
                 for tag in tags:
                     uuid = tag['uuid']
-                    self._tags[uuid] = SensorTag(tag, self)
-                _LOGGER.info("tags reloaded at: %s", datetime.now())
+                    # save mac - a unique identifier of specific tag manager
+                    mac = tag['mac'] if 'mac' in tag else None
+                    self._tags[uuid] = SensorTag(tag, self, mac)
+                    self._register_mac(mac)
+                _LOGGER.info("Tags reloaded at: %s", datetime.now())
             except Exception as error:
                 _LOGGER.error("failed to load tags - %s", error)
 
         return self._tags
 
-    def arm_motion(self, tag_id):
+    def arm_motion(self, tag_id, mac=None):
         """Arm motion sensor to monitor changes."""
         payload = {"id": tag_id, "door_mode_set_closed": True}
-        return self._arm_control_tag(tag_id, CONST.ARM_MOTION_URL, payload)
+        return self._arm_control_tag(tag_id, CONST.ARM_MOTION_URL,
+                                     mac, payload)
 
-    def arm_temperature(self, tag_id):
+    def arm_temperature(self, tag_id, mac=None):
         """Arm temperature sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_TEMPERATURE_URL, mac)
 
-    def arm_humidity(self, tag_id):
+    def arm_humidity(self, tag_id, mac=None):
         """Arm humidity sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_HUMIDITY_URL, mac)
 
-    def arm_light(self, tag_id):
+    def arm_light(self, tag_id, mac=None):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.ARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.ARM_LIGHT_URL, mac)
 
-    def disarm_motion(self, tag_id):
+    def disarm_motion(self, tag_id, mac=None):
         """Disarm motion sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_MOTION_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_MOTION_URL, mac)
 
-    def disarm_temperature(self, tag_id):
+    def disarm_temperature(self, tag_id, mac=None):
         """Disarm temperature sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_TEMPERATURE_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_TEMPERATURE_URL, mac)
 
-    def disarm_humidity(self, tag_id):
+    def disarm_humidity(self, tag_id, mac=None):
         """Disarm humidity sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_HUMIDITY_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_HUMIDITY_URL, mac)
 
-    def disarm_light(self, tag_id):
+    def disarm_light(self, tag_id, mac=None):
         """Arm light sensor to monitor changes."""
-        return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL)
+        return self._arm_control_tag(tag_id, CONST.DISARM_LIGHT_URL, mac)
 
-    def install_push_notification(self, tag_id, notifications, apply_to_all=False):
+    def install_push_notification(
+            self, tag_id, notifications, apply_to_all=False, tag_manager_mac=None):
         """Install set of push notifications for specified tag."""
         def list_to_spec(array):
-            """Sub-func to represent notifications as disctionary."""
+            """Sub-func to represent notifications as dictionary."""
             spec = {}
             for item in array:
                 spec[item.name] = item.spec
@@ -137,26 +150,29 @@ class WirelessTags:
                 "applyAll": apply_to_all,
                 "id": tag_id if not apply_to_all else -1
             }
-
+            headers = self._headers_for_mac(tag_manager_mac)
             response = requests.post(CONST.SAVE_EVENT_URL_CONFIG_URL,
-                                     headers=self._HEADERS,
+                                     headers=headers,
                                      cookies=cookies,
                                      data=json.dumps(payload))
             succeed = "d" in response.json()
         except Exception as error:
-            _LOGGER.error("failed to save notifications configuration: %s - %s", tag_id, error)
+            _LOGGER.error("Failed to save notifications config: %s - %s",
+                          tag_id, error)
             succeed = False
 
         return succeed
 
-    def fetch_push_notifications(self, tag_id):
-        """Read from tags manager current set of push notifications installed."""
+    def fetch_push_notifications(self, tag_id, tag_manager_mac=None):
+        """Read from tags manager current set of push notifications."""
         cookies = self._auth_cookies
         notifications = []
         try:
             payload = json.dumps({"id": tag_id})
-            response = requests.post(CONST.LOAD_EVENT_URL_CONFIG_URL, headers=self._HEADERS,
-                                     cookies=cookies, data=payload)
+            headers = self._headers_for_mac(tag_manager_mac)
+            response = requests.post(
+                CONST.LOAD_EVENT_URL_CONFIG_URL, headers=headers,
+                cookies=cookies, data=payload)
             json_notifications_spec = response.json()
             set_spec = json_notifications_spec['d']
             for name, spec in set_spec.items():
@@ -166,27 +182,42 @@ class WirelessTags:
             _LOGGER.error("failed to fetch : %s - %s", tag_id, error)
         return notifications
 
-    def _arm_control_tag(self, tag_id, url, own_payload=None):
+    def _arm_control_tag(self, tag_id, url, tag_manager_mac=None, own_payload=None):
         """Arm sensor with specified id and url to monitor changes."""
         cookies = self._auth_cookies
         sensor_tag = None
         try:
-            payload = json.dumps({"id": tag_id} if own_payload is None else own_payload)
-            response = requests.post(url, headers=self._HEADERS, cookies=cookies, data=payload)
+            payload = json.dumps((
+                {"id": tag_id} if own_payload is None else own_payload))
+            headers = self._headers_for_mac(tag_manager_mac)
+            response = requests.post(
+                url, headers=headers, cookies=cookies, data=payload)
             json_tags_spec = response.json()
             tag = json_tags_spec['d']
             uuid = tag['uuid']
-            self._tags[uuid] = SensorTag(tag, self)
+            self._tags[uuid] = SensorTag(tag, self, tag_manager_mac)
             sensor_tag = self._tags[uuid]
         except Exception as error:
-            _LOGGER.error("failed to arm/disarm for tag id: %s - %s", tag_id, error)
+            _LOGGER.error("failed to arm/disarm for tag id: %s - %s",
+                          tag_id, error)
         return sensor_tag
+
+    def _headers_for_mac(self, tag_manager_mac):
+        """Build headers for http request."""
+        headers = self._HEADERS
+        # combination of tag_id and X-Set-Mac header with mac
+        # allows to uniquely identify tag across multiple tag managers
+        if tag_manager_mac is not None:
+            headers['X-Set-Mac'] = tag_manager_mac
+        return headers
 
     def _login(self):
         """Perform user login."""
-        auth = json.dumps({"email": self._username, "password": self._password})
+        auth = json.dumps({
+            "email": self._username, "password": self._password})
         try:
-            response = requests.post(self._SIGN_IN_URL, headers=self._HEADERS, data=auth)
+            response = requests.post(
+                self._SIGN_IN_URL, headers=self._HEADERS, data=auth)
             json_response = response.json()
 
             self._update_server_settings(json_response['d'])
@@ -194,7 +225,8 @@ class WirelessTags:
         except Exception as error:
             _LOGGER.debug("Failed to login to %s - %s", CONST.BASEURL, error)
             self._cookies = None
-            raise WirelessTagsException('Unable to login to wirelesstags.net - check your credentials')
+            raise WirelessTagsException("Unable to login to wirelesstags.net"
+                                        " - check your credentials")
 
         _LOGGER.info("Login successful")
 
@@ -212,7 +244,8 @@ class WirelessTags:
         if cookies is None:
             cookies = self._login()
         try:
-            response = requests.post(self._IS_SIGNED_IN_URL, headers=self._HEADERS, cookies=cookies)
+            response = requests.post(
+                self._IS_SIGNED_IN_URL, headers=self._HEADERS, cookies=cookies)
             json_response = response.json()
             if 'd' in json_response:
                 self._update_server_settings(json_response['d'])
@@ -234,8 +267,14 @@ class WirelessTags:
         elapsed = time.time() - self._last_load_time
         return elapsed > self._postback_interval
 
+    def _register_mac(self, mac):
+        if mac not in self.mac_addresses:
+            self.mac_addresses.append(mac)
+
     def __str__(self):
         """Return string representation of wirelesstags platform."""
         temperature_str = 'celsius' if self.use_celsius else 'fahrenheit'
-        return 'WirelessTagsPlatform: using {}, update interval: {} server time: {} tags: {}'\
-            .format(temperature_str, self._postback_interval, self._server_time, self._tags)
+        return "WirelessTagsPlatform: using {}," \
+               "update interval: {} server time: {} tags: {}"\
+               .format(temperature_str, self._postback_interval,
+                       self._server_time, self._tags)
