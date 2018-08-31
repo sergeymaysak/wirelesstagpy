@@ -17,8 +17,11 @@ import wirelesstagpy.utils as UTILS
 import wirelesstagpy.constants as CONST
 from wirelesstagpy.binaryevent import (
     BinaryEvent,
+    BinaryEventProxy,
     BINARY_EVENT_SPECS)
-from wirelesstagpy.sensor import Sensor
+from wirelesstagpy.sensor import (
+    Sensor,
+    SensorProxy)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -358,6 +361,15 @@ class SensorTag:
                      str(result), tag_type)
 
         return result
+
+    def __getattr__(self, key):
+        """Return proxy models for subscripting support."""
+        if key == 'sensor':
+            return SensorProxy(self)
+        elif key == 'event':
+            return BinaryEventProxy(self)
+        else:
+            raise AttributeError
 
     def __repr__(self):
         """Return string representation of tag."""

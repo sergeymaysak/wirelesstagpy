@@ -99,3 +99,15 @@ class BinaryEvent:
     def is_state_on(self):
         """Return binary event state."""
         return getattr(self._parent_tag(), self._tag_attr, False)
+
+
+class BinaryEventProxy:
+    """Proxy model to handle subscripting for single binry event."""
+
+    def __init__(self, tag):
+        """Init proxy with parent tag."""
+        self._parent_tag = weakref.ref(tag)
+
+    def __getitem__(self, key):
+        """Return binary event instance for key."""
+        return self._parent_tag().event_for_type(key)

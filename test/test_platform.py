@@ -319,10 +319,10 @@ class TestWirelessTags(unittest.TestCase):
         mac = '0d0d0d0d0d0d'
         tag = SensorTag(MOCK.WATERSENSOR, self.platform, mac)
 
-        event = tag.event_for_type(CONST.EVENT_WET)
+        event = tag.event[CONST.EVENT_WET]
         self.assertIsNone(event)
 
-        event = tag.event_for_type(CONST.EVENT_MOISTURE)
+        event = tag.event[CONST.EVENT_MOISTURE]
         self.assertIsNotNone(event)
         self.assertTrue(event.is_state_on)
 
@@ -341,7 +341,7 @@ class TestWirelessTags(unittest.TestCase):
         """Test motion binary event for PIR sensor."""
         mac = '12'
         tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
-        event = tag.event_for_type(CONST.EVENT_MOTION)
+        event = tag.event[CONST.EVENT_MOTION]
         self.assertIsNotNone(event)
         self.assertFalse(event.is_state_on)
 
@@ -360,7 +360,7 @@ class TestWirelessTags(unittest.TestCase):
         """Test sensors supported by tag."""
         mac = '12'
         tag = SensorTag(MOCK.PIRSENSOR, self.platform, mac)
-        sensor = tag.sensor_for_type(CONST.SENSOR_TEMPERATURE)
+        sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
         self.assertIsNotNone(sensor)
         self.assertEqual(sensor.value, 23.924919128417969)
 

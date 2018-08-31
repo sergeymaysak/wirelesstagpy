@@ -75,3 +75,15 @@ class Sensor:
     def __repr__(self):
         """Return string representation."""
         return '{} value: {} of {}'.format(self.sensor_type, self.value, self.unit)
+
+
+class SensorProxy:
+    """Proxy model to handle subscripting for single sensor."""
+
+    def __init__(self, tag):
+        """Init proxy with parent tag."""
+        self._parent_tag = weakref.ref(tag)
+
+    def __getitem__(self, key):
+        """Return sensor instance for key."""
+        return self._parent_tag().sensor_for_type(key)
