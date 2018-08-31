@@ -11,6 +11,7 @@ Verified with:
 - 13-bit motion/temperature/humidity tags (type 13)
 - Water/Moisture tags (type 32)
 - ALS Pro tag (type 26)
+- PIR Kumo sensor (type 72)
 
 ## Installation
 
