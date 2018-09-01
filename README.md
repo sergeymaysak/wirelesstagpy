@@ -32,9 +32,9 @@ See [apidoc.html](http://wirelesstag.net/apidoc.html) for API details.
 import wirelesstagpy
 
 api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
-sensors = api.load_tags()
-for (uuid, tag) in sensors.items():
-    print('Loaded sensor: {}, temp: {}, humidity: {} probe taken: {}'.format(
+tags = api.load_tags()
+for (uuid, tag) in tags.items():
+    print('Loaded tag: {}, temp: {}, humidity: {} probe taken: {}'.format(
                 tag.name, tag.temperature,
                 tag.humidity, tag.time_since_last_update))
 
@@ -88,6 +88,65 @@ sensor = api.disarm_humidity(1)
 # Specify tag manager if you have multiple tag managers
 sensor = api.arm_humidity(sensor.tag_id, sensor.tag_manager_mac)
 
+```
+
+## Working with sensors and binary events
+
+Single tag holds notion of multiple sensors and binary events.
+Each sensor is entity representing single sensing metric such as temperature, humidity, moisture, light or motion.
+You can get list of supported sensors and binary events by calling `tag.allowed_sensor_types` for sensors,
+`tag.supported_binary_events_types` for binary events.
+Also you can query tag on list of supported monitoring conditions that can be represented as switches to be armed/disarmed by calling `tag.allowed_monitoring_types`.
+
+Handling sensors:
+```python
+
+import wirelesstagpy
+import wirelesstagpy.constants as CONST
+
+api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
+tags = api.load_tags()
+
+# get temperature sensor value for tag
+for (uuid, tag) in tags.items():
+    sensor = tag.sensor[CONST.SENSOR_TEMPERATURE]
+    if sensor is not None:
+        print('{} temperature: {}'.format(tag.name, sensor.value))
+
+```
+
+Handling binary events:
+```python
+
+import wirelesstagpy
+import wirelesstagpy.constants as CONST
+
+api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
+tags = api.load_tags()
+
+# get motion binary event state for each tag
+for (uuid, tag) in tags.items():
+    if CONST.EVENT_MOTION in tag.supported_binary_events_types:
+        event = tag.event[CONST.EVENT_MOTION]
+        print('tag {} event state: {}'.format(tag.name, event.is_state_on))
+
+```
+
+Use binary events to build custom push notifications configurations
+```python
+
+import wirelesstagpy
+import wirelesstagpy.constants as CONST
+
+api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
+tags = api.load_tags()
+tag = tags['uuid-of-tag-in-question']
+event = tag.event[CONST.EVENT_MOISTURE]
+if event is not None:
+    configs = event.build_notifications('http://path_to_post', tag.tag_manager_mac)
+    # install it for any tags of tag manager
+    succeed = api.install_push_notification(0, configs, True,
+                                            tag.tag_manager_mac)
 ```
 
 ## Disclaimer
