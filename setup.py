@@ -32,7 +32,7 @@ setup(
     author_email='sergey.maysak@gmail.com',
     description='Simple python wrapper over wirelesstags REST API',
     long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
     packages=PACKAGES,
     python_requires='>=3',
     py_modules=['wirelesstagpy'],
