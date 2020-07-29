@@ -28,9 +28,7 @@ setup(
     license='MIT',
     author='Sergiy Maysak',
     tests_require=['pytest'],
-    install_requires=['requests>=2.18.4',
-                      'colorlog==3.0.1'
-                     ],
+    install_requires=['requests>=2.18.4'],
     author_email='sergey.maysak@gmail.com',
     description='Simple python wrapper over wirelesstags REST API',
     long_description=LONG_DESCRIPTION,
@@ -44,6 +42,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Intended Audience :: Developers',
