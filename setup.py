@@ -8,17 +8,9 @@ from setuptools import setup, find_packages
 
 import wirelesstagpy.constants as CONST
 
-def read(*filenames, **kwargs):
-    """Join multiple files."""
-    encoding = kwargs.get('encoding', 'utf-8')
-    sep = kwargs.get('sep', '\n')
-    buf = []
-    for filename in filenames:
-        with io.open(filename, encoding=encoding) as file:
-            buf.append(file.read())
-    return sep.join(buf)
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-LONG_DESCRIPTION = read('README.md', 'CHANGES.md', 'TODO.md')
 PACKAGES = find_packages(exclude=['test', 'test.*', 'test*'])
 
 setup(
@@ -31,7 +23,7 @@ setup(
     install_requires=['requests>=2.18.4'],
     author_email='sergey.maysak@gmail.com',
     description='Simple python wrapper over wirelesstags REST API',
-    long_description=LONG_DESCRIPTION,
+    long_description=long_description,
     long_description_content_type='text/markdown',
     packages=PACKAGES,
     python_requires='>=3',

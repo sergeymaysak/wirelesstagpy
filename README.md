@@ -3,7 +3,7 @@
 A simple python wrapper library for Wireless Sensor Tag platform (`http://wirelesstag.net`).
 
 Supports getting data for registered by end user sensor tags.
-mytaglist.com account credentials are needed to use this lib.
+wirelesstag.net account credentials are needed to use this lib.
 Enabling tags sharing is not required.
 
 Verified with:
