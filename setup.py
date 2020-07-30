@@ -8,8 +8,11 @@ from setuptools import setup, find_packages
 
 import wirelesstagpy.constants as CONST
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 PACKAGES = find_packages(exclude=['test', 'test.*', 'test*'])
 
