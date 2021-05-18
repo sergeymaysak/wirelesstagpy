@@ -18,7 +18,7 @@ trademarks of Cao Gadgets LLC,
 see www.wirelesstag.net for more information.
 I am in no way affiliated with Cao Gadgets LLC.
 
-Copyrights: (c) 2018 Sergiy Maysak, see LICENSE file for details
+Copyrights: (c) 2018-2021 Sergiy Maysak, see LICENSE file for details
 Creation Date: 3/7/2018.
 """
 
@@ -26,6 +26,9 @@ import json
 import time
 from datetime import datetime
 import logging
+from xml.etree import ElementTree
+from threading import Thread
+from threading import Lock
 import requests
 
 from wirelesstagpy.sensortag import SensorTag
@@ -34,7 +37,6 @@ from wirelesstagpy.notificationconfig import NotificationConfig
 import wirelesstagpy.constants as CONST
 
 _LOGGER = logging.getLogger(__name__)
-
 
 class WirelessTags:
     """Principal class for Wireless Sensors Tags."""
@@ -65,6 +67,10 @@ class WirelessTags:
         # array of tag managers mac addresses
         self.mac_addresses = []
 
+        self._is_cloud_push_active = False
+        self._update_lock = Lock()
+        self._thread = None
+
     def load_tags(self):
         """Load all registered tags."""
         if self._needs_reload:
@@ -78,12 +84,7 @@ class WirelessTags:
 
                 json_tags_spec = response.json()
                 tags = json_tags_spec['d']
-                for tag in tags:
-                    uuid = tag['uuid']
-                    # save mac - a unique identifier of specific tag manager
-                    mac = tag['mac'] if 'mac' in tag else None
-                    self._tags[uuid] = SensorTag(tag, self, mac)
-                    self._register_mac(mac)
+                self._update_tags(tags)
                 _LOGGER.info("Tags reloaded at: %s", datetime.now())
             except Exception as error:
                 _LOGGER.error("failed to load tags - %s", error)
@@ -181,6 +182,81 @@ class WirelessTags:
         except Exception as error:
             _LOGGER.error("failed to fetch : %s - %s", tag_id, error)
         return notifications
+
+    @property
+    def is_monitoring(self):
+        """Return if cloud push monitoring is active or not."""
+        return self._is_cloud_push_active
+
+    def start_monitoring(self, handler):
+        """Start monitoring of state changes with push from cloud."""
+        if self._is_cloud_push_active is True:
+            return
+
+        self._is_cloud_push_active = True
+        self._start_monitoring_thread(handler)
+        return
+
+    def stop_monitoring(self):
+        """Stop monitoring of state changes from cloud."""
+        if self._is_cloud_push_active is False:
+            return
+
+        self._is_cloud_push_active = False
+        self._thread.join(timeout=1)
+        return
+
+    def _start_monitoring_thread(self, handler):
+        """Start working thread for monitoring cloud push."""
+
+        def _cloud_push_worker(handler):
+            """Worker function for thread."""
+            while True:
+                if not self._is_cloud_push_active:
+                    break
+                try:
+                    tags_updated = self._request_push_update()
+                    if tags_updated is not None and len(tags_updated) > 0:
+                        updated_sensors = self._update_tags(tags_updated)
+                        handler(updated_sensors)
+                except Exception as error:
+                    _LOGGER.error("failed to get cloud push: %s",
+                                  error)
+            return
+
+        self._thread = Thread(target=_cloud_push_worker, args=(handler, ))
+        self._thread.start()
+
+    def _request_push_update(self):
+        """Request push update for tags states."""
+        cookies = self._auth_cookies
+        tags_updated = []
+        try:
+            payload = CONST.SOAP_CLOUD_PUSH_PAYLOAD
+            headers = CONST.SOAP_CLOUD_PUSH_HEADERS
+            response = requests.post(
+                CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, headers=headers,
+                cookies=cookies, data=payload)
+            root = ElementTree.fromstring(response.content)
+            raw_tags = root.find(CONST.CLOUD_PUSH_XPATH)
+            tags_updated = json.loads(raw_tags.text)
+        except Exception as error:
+            _LOGGER.error("failed to fetch push update: %s", error)
+        return tags_updated
+
+    def _update_tags(self, tags):
+        """Helper to store updated tag values"""
+
+        updated_tags = {}
+        with self._update_lock:
+            for tag in tags:
+                uuid = tag['uuid']
+                # save mac - a unique identifier of specific tag manager
+                mac = tag['mac'] if 'mac' in tag else None
+                self._tags[uuid] = SensorTag(tag, self, mac)
+                self._register_mac(mac)
+                updated_tags[uuid] = self._tags[uuid]
+        return updated_tags
 
     def _arm_control_tag(self, tag_id, url, tag_manager_mac=None, own_payload=None):
         """Arm sensor with specified id and url to monitor changes."""

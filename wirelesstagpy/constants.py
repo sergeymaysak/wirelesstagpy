@@ -4,8 +4,8 @@
 """WirelessTags constants."""
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 4
-PATCH_VERSION = 1
+MINOR_VERSION = 5
+PATCH_VERSION = 0
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -29,6 +29,11 @@ DISARM_LIGHT_URL = BASEURL + "/ethClient.asmx/DisarmLightSensor"
 LOAD_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/LoadEventURLConfig"
 SAVE_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/SaveEventURLConfig"
 
+REQUEST_CLOUD_PUSH_UPDATE_URL = BASEURL + "/ethComet.asmx?op=GetNextUpdate2"
+SOAP_CLOUD_PUSH_PAYLOAD = '''<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetNextUpdate2 xmlns="http://mytaglist.com/ethComet"/></soap:Body></soap:Envelope>'''
+SOAP_CLOUD_PUSH_HEADERS = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": "http://mytaglist.com/ethComet/GetNextUpdate2"}
+CLOUD_PUSH_XPATH = ".//{http://mytaglist.com/ethComet}GetNextUpdate2Result"
+
 WIRELESSTAG_TYPE_13BIT = 13
 WIRELESSTAG_TYPE_ALSPRO = 26
 WIRELESSTAG_TYPE_WATER = 32
@@ -36,7 +41,7 @@ WIRELESSTAG_TYPE_PIR = 72
 WIRELESSTAG_TYPE_WEMO_DEVICE = 82
 
 # events
-# On means in range, Off means out of range
+# On means in range, Off means out of rang
 EVENT_PRESENCE = 'presence'
 
 # On means motion detected, Off means cear
