@@ -1,11 +1,8 @@
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """Module with tests for cloud push API in wirelesstags platform."""
 
-import unittest
-import threading
 import json
 from xml.etree import ElementTree
 
@@ -18,6 +15,7 @@ import wirelesstagpy.constants as CONST
 
 USERNAME = 'foobar'
 PASSWORD = 'deadbeef'
+
 
 class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
     """Tests for Cloud Push logic."""
@@ -38,11 +36,12 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, text=MOCK.CLOUD_PUSH_UPDATE_RESPONSE)
 
         local_platform = self.platform
+
         def push_callback(tags):
-            """Local push callback"""
+            """Local push callback."""
             self.assertTrue(local_platform.is_monitoring)
             self.assertTrue(len(tags) == 1)
-            local_platform.stop_monitoring()            
+            local_platform.stop_monitoring()
             self.assertFalse(local_platform.is_monitoring)
 
         with tl.testing.thread.ThreadJoiner(1):
@@ -53,7 +52,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         self.assertFalse(self.platform.is_monitoring)
         self.platform.stop_monitoring()
         self.assertFalse(self.platform.is_monitoring)
-    
+
     @requests_mock.mock()
     def test_cloud_push_failed(self, m):
         """Test cloud push logic."""
@@ -62,6 +61,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, status_code=500)
 
         local_platform = self.platform
+
         def push_callback(tags):
             pass
 

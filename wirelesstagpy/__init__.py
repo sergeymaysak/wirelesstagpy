@@ -38,6 +38,7 @@ import wirelesstagpy.constants as CONST
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class WirelessTags:
     """Principal class for Wireless Sensors Tags."""
 
@@ -206,7 +207,6 @@ class WirelessTags:
 
     def _start_monitoring_thread(self, handler):
         """Start working thread for monitoring cloud push."""
-
         def _cloud_push_worker(handler):
             """Worker function for thread."""
             while True:
@@ -220,7 +220,6 @@ class WirelessTags:
                 except Exception as error:
                     _LOGGER.error("failed to get cloud push: %s",
                                   error)
-            return
 
         self._thread = Thread(target=_cloud_push_worker, args=(handler, ))
         self._thread.start()
@@ -243,8 +242,7 @@ class WirelessTags:
         return tags_updated
 
     def _update_tags(self, tags):
-        """Helper to store updated tag values"""
-
+        """Update tags arrived from server."""
         updated_tags = {}
         with self._update_lock:
             for tag in tags:
@@ -300,7 +298,7 @@ class WirelessTags:
             _LOGGER.debug("Failed to login to %s - %s", CONST.BASEURL, error)
             self._cookies = None
             raise WirelessTagsException("Unable to login to wirelesstags.net"
-                                        " - check your credentials")
+                                        " - check your credentials") from error
 
         _LOGGER.info("Login successful")
 
