@@ -195,7 +195,6 @@ class WirelessTags:
 
         self._is_cloud_push_active = True
         self._start_monitoring_thread(handler)
-        return
 
     def stop_monitoring(self):
         """Stop monitoring of state changes from cloud."""
@@ -204,7 +203,6 @@ class WirelessTags:
 
         self._is_cloud_push_active = False
         self._thread.join(timeout=1)
-        return
 
     def _start_monitoring_thread(self, handler):
         """Start working thread for monitoring cloud push."""
