@@ -130,7 +130,7 @@ class SensorTag:
         return datetime.utcnow() - self.last_load_time
 
     @property
-    def motion_state(self):
+    def motion_state(self) -> int:
         """Return state of motion sensor."""
         # spec = {0: 'Disarmed', 1: 'Armed', 2: 'Moved', 3: 'Opened', 4: 'Closed',
         #        5: 'DetectedMovement', 6: 'TimedOut', 7: 'Stabilizing', 8: 'CarriedAway',
@@ -143,40 +143,40 @@ class SensorTag:
         return self.motion_state != 0
 
     @property
-    def humidity_sensor_state(self):
+    def humidity_sensor_state(self) -> int:
         """Return state of humidity event state."""
         # NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
         return self._info['capEventState']
 
     @property
-    def is_humidity_sensor_armed(self):
+    def is_humidity_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to humidity changes events."""
         cap_state = self.humidity_sensor_state
         return cap_state not in [0, 1]
 
     @property
-    def moisture_sensor_state(self):
+    def moisture_sensor_state(self) -> int:
         """Return moisture state."""
         return self.humidity_sensor_state
 
     @property
-    def is_moisture_sensor_armed(self):
+    def is_moisture_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to moisture level events."""
         return self.is_humidity_sensor_armed
 
     @property
-    def temperature_sensor_state(self):
+    def temperature_sensor_state(self) -> int:
         """Return state of temp sensor monitoring."""
         # Disarmed(0) or Normal(1) or TooHigh(2) or TooLow(3) or ThresholdPending(4)
         return self._info['tempEventState']
 
     @property
-    def is_temperature_sensor_armed(self):
+    def is_temperature_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to temperature changes evens."""
         return self.temperature_sensor_state != 0
 
     @property
-    def light_sensor_state(self):
+    def light_sensor_state(self) -> int:
         """Return state of light sensor monitoring.
 
         States: NA (0) or Disarmed(1) or Normal or TooDark or TooBright or ThresholdPending.
@@ -184,53 +184,53 @@ class SensorTag:
         return self._info['lightEventState']
 
     @property
-    def is_light_sensor_armed(self):
+    def is_light_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to light changes evens."""
         light_state = self.light_sensor_state
         return light_state not in [0, 1]
 
     @property
-    def is_moved(self):
+    def is_moved(self) -> bool:
         """Return True if detected movement."""
         return self.motion_state == 2  # Moved
 
     @property
-    def is_door_open(self):
+    def is_door_open(self) -> bool:
         """Return True if detected door opening."""
         return self.motion_state == 3  # Open
 
     @property
-    def is_cold(self):
+    def is_cold(self) -> bool:
         """Return True if temperature is too low."""
         return self.temperature_sensor_state == 3  # TooLow
 
     @property
-    def is_heat(self):
+    def is_heat(self) -> bool:
         """Return True if temperature is too high."""
         return self.temperature_sensor_state == 2  # TooHigh
 
     @property
-    def is_too_dry(self):
+    def is_too_dry(self) -> bool:
         """Return True if humidity is too low (<20%)."""
         return self.humidity_sensor_state == 3  # TooDry
 
     @property
-    def is_too_humid(self):
+    def is_too_humid(self) -> bool:
         """Return True if humidity is too wet (>80%)."""
         return self.humidity_sensor_state == 4  # TooHumid
 
     @property
-    def is_light_on(self):
+    def is_light_on(self) -> bool:
         """Return True if detected light."""
         return self.light > 0
 
     @property
-    def is_leaking(self):
+    def is_leaking(self) -> bool:
         """Return True if detected water leak - applicable for water sensor only."""
         return self.tag_type == CONST.WIRELESSTAG_TYPE_WATER and self.moisture > 0
 
     @property
-    def is_battery_low(self):
+    def is_battery_low(self) -> bool:
         """Return True if detected low battery level."""
         return self.battery_volts <= self.low_battery_threshold
 
@@ -278,7 +278,7 @@ class SensorTag:
         fullset = BINARY_EVENT_SPECS.keys()
         return events_map[tag_type] if tag_type in events_map else fullset
 
-    def event_for_type(self, event_type):
+    def event_for_type(self, event_type) -> BinaryEvent:
         """Return event model for specified type."""
         if event_type not in self.supported_binary_events_types:
             return None
@@ -319,7 +319,7 @@ class SensorTag:
             sensors_per_tag_type[tag_type] if tag_type in sensors_per_tag_type
             else all_sensors)
 
-    def sensor_for_type(self, sensor_type):
+    def sensor_for_type(self, sensor_type) -> Sensor:
         """Return sensor for specified type or None if not supported by tag."""
         if sensor_type not in self.allowed_sensor_types:
             return None
@@ -361,6 +361,83 @@ class SensorTag:
                      str(result), tag_type)
 
         return result
+
+    def detected_events(self, old_tag):
+        """Identify if current tag has triggered binary event."""
+        if old_tag is None:
+            return None
+
+        events = []
+        if self.motion_state != old_tag.motion_state:
+            event = BinaryEvent.make_state_event(self)
+            if event is not None:
+                events.append(event)
+
+        if self.tag_type == CONST.WIRELESSTAG_TYPE_WATER and self.is_leaking != old_tag.is_leaking:
+            event = BinaryEvent.make_event(CONST.EVENT_MOISTURE, self)
+            events.append(event)
+
+        if self.moisture_sensor_state != old_tag.moisture_sensor_state:
+            event = self._make_humidity_event(old_tag)
+            if event is not None:
+                events.append(event)
+
+        if self.temperature_sensor_state != old_tag.temperature_sensor_state:
+            event = self._make_temperature_event(old_tag)
+            if event is not None:
+                events.append(event)
+
+        if self.light_sensor_state != old_tag.light_sensor_state:
+            event = BinaryEvent.make_event(CONST.EVENT_LIGHT, self)
+            events.append(event)
+
+        if self.is_battery_low != old_tag.is_battery_low:
+            event = BinaryEvent.make_event(CONST.EVENT_BATTERY, self)
+            events.append(event)
+
+        if self.is_in_range != old_tag.is_in_range:
+            event = BinaryEvent.make_event(CONST.EVENT_PRESENCE, self)
+            events.append(event)
+
+        return events
+
+    def _make_humidity_event(self, old_tag) -> BinaryEvent:
+        # NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
+        event_type = None
+
+        if self.is_too_dry:
+            event_type = CONST.EVENT_DRY
+        elif self.is_too_humid:
+            event_type = CONST.EVENT_WET
+        elif self.humidity_sensor_state == 2:  # Normal(2) then check previous state
+            if old_tag.is_too_dry:
+                event_type = CONST.EVENT_DRY
+            elif self.is_too_humid:
+                event_type = CONST.EVENT_WET
+
+        if event_type is not None:
+            return BinaryEvent.make_event(event_type, self)
+
+        return None
+
+    def _make_temperature_event(self, old_tag) -> BinaryEvent:
+        # Disarmed(0) or Normal(1) or TooHigh(2) or TooLow(3) or ThresholdPending(4)
+        event_type = None
+
+        if self.is_heat:
+            event_type = CONST.EVENT_HEAT
+        elif self.is_cold:
+            event_type = CONST.EVENT_COLD
+        elif self.temperature_sensor_state == 1:  # Normal(1)
+            if old_tag.is_heat:
+                event_type = CONST.EVENT_HEAT
+            elif old_tag.is_cold:
+                event_type = CONST.EVENT_COLD
+
+        if event_type is not None:
+            return BinaryEvent.make_event(event_type, self)
+
+        return None
 
     def __getattr__(self, key):
         """Return proxy models for subscripting support."""

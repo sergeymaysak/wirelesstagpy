@@ -215,8 +215,8 @@ class WirelessTags:
                 try:
                     tags_updated = self._request_push_update()
                     if tags_updated is not None and len(tags_updated) > 0:
-                        updated_sensors = self._update_tags(tags_updated)
-                        handler(updated_sensors)
+                        updated_tags, events = self._update_tags(tags_updated)
+                        handler(updated_tags, events)
                 except Exception as error:
                     _LOGGER.error("failed to get cloud push: %s",
                                   error)
@@ -244,15 +244,21 @@ class WirelessTags:
     def _update_tags(self, tags):
         """Update tags arrived from server."""
         updated_tags = {}
+        binary_events = {}
         with self._update_lock:
             for tag in tags:
                 uuid = tag['uuid']
                 # save mac - a unique identifier of specific tag manager
                 mac = tag['mac'] if 'mac' in tag else None
-                self._tags[uuid] = SensorTag(tag, self, mac)
+                new_tag = SensorTag(tag, self, mac)
+                old_tag = self._tags[uuid] if uuid in self._tags else None
+                detected_events = new_tag.detected_events(old_tag)
+                if detected_events is not None and len(detected_events) > 0:
+                    binary_events[uuid] = detected_events
+                self._tags[uuid] = new_tag
                 self._register_mac(mac)
-                updated_tags[uuid] = self._tags[uuid]
-        return updated_tags
+                updated_tags[uuid] = new_tag
+        return (updated_tags, binary_events)
 
     def _arm_control_tag(self, tag_id, url, tag_manager_mac=None, own_payload=None):
         """Arm sensor with specified id and url to monitor changes."""

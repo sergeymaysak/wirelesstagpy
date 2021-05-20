@@ -6,11 +6,11 @@ import asyncio
 import wirelesstagpy
 
 loop = asyncio.get_event_loop()
-platform = wirelesstagpy.WirelessTags(username='email', password='passwd')
+platform = wirelesstagpy.WirelessTags(username='sergey.maysak@gmail.com', password='asterix8Tag')
 
-def callback(sensors):
+def callback(tags, events):
     """Callback on cloud push update."""
-    print("updated sensors: {}".format(sensors))
+    print("updated tags: {}, triggered events: {}".format(tags, events))
 
 platform.start_monitoring(callback)
 print("started push updates")
