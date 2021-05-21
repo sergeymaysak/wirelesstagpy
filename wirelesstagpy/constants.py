@@ -29,15 +29,16 @@ DISARM_LIGHT_URL = BASEURL + "/ethClient.asmx/DisarmLightSensor"
 LOAD_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/LoadEventURLConfig"
 SAVE_EVENT_URL_CONFIG_URL = BASEURL + "/ethClient.asmx/SaveEventURLConfig"
 
-REQUEST_CLOUD_PUSH_UPDATE_URL = BASEURL + "/ethComet.asmx?op=GetNextUpdate2"
-SOAP_CLOUD_PUSH_PAYLOAD = '''<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetNextUpdate2 xmlns="http://mytaglist.com/ethComet"/></soap:Body></soap:Envelope>'''
-SOAP_CLOUD_PUSH_HEADERS = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": "http://mytaglist.com/ethComet/GetNextUpdate2"}
-CLOUD_PUSH_XPATH = ".//{http://mytaglist.com/ethComet}GetNextUpdate2Result"
+REQUEST_CLOUD_PUSH_UPDATE_URL = BASEURL + "/ethComet.asmx?op=GetNextUpdateForAllManagersOnDB2"
+SOAP_CLOUD_PUSH_PAYLOAD = '''<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetNextUpdateForAllManagersOnDB2 xmlns="http://mytaglist.com/ethComet"><dbid>2</dbid></GetNextUpdateForAllManagersOnDB2></soap:Body></soap:Envelope>'''
+SOAP_CLOUD_PUSH_HEADERS = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": "http://mytaglist.com/ethComet/GetNextUpdateForAllManagersOnDB2"}
+CLOUD_PUSH_XPATH = ".//{http://mytaglist.com/ethComet}GetNextUpdateForAllManagersOnDB2Result"
 
 WIRELESSTAG_TYPE_13BIT = 13
 WIRELESSTAG_TYPE_ALSPRO = 26
 WIRELESSTAG_TYPE_WATER = 32
 # Reed/RH (52)???
+# Outdoor Probe/Thermocouple	42
 WIRELESSTAG_TYPE_PIR = 72
 WIRELESSTAG_TYPE_WEMO_DEVICE = 82
 

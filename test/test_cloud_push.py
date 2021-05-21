@@ -100,7 +100,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
     def test_soup_parsing(self):
         """Test for parsing arrived soap payload on cloud push."""
         root = ElementTree.fromstring(MOCK.CLOUD_PUSH_UPDATE_RESPONSE)
-        raw_tags = root.find(".//{http://mytaglist.com/ethComet}GetNextUpdate2Result")
+        raw_tags = root.find(CONST.CLOUD_PUSH_XPATH)
         tags = json.loads(raw_tags.text)
         self.assertTrue(len(tags) == 1)
 
