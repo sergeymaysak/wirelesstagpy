@@ -37,6 +37,7 @@ CLOUD_PUSH_XPATH = ".//{http://mytaglist.com/ethComet}GetNextUpdate2Result"
 WIRELESSTAG_TYPE_13BIT = 13
 WIRELESSTAG_TYPE_ALSPRO = 26
 WIRELESSTAG_TYPE_WATER = 32
+# Reed/RH (52)???
 WIRELESSTAG_TYPE_PIR = 72
 WIRELESSTAG_TYPE_WEMO_DEVICE = 82
 
@@ -83,3 +84,34 @@ ARM_HUMIDITY = 'humidity'
 ARM_MOTION = 'motion'
 ARM_LIGHT = 'light'
 ARM_MOISTURE = 'moisture'
+
+# humidity binary event states
+# NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
+HUMIDITY_STATE_NA = 0
+HUMIDITY_STATE_DISABLED = 1
+HUMIDITY_STATE_NORMAL = 2
+HUMIDITY_STATE_TOO_DRY = 3
+HUMIDITY_STATE_TOO_WET = 4
+HUMIDITY_STATE_THRESHOLD_PENDING = 5
+
+# temperature binary event states
+# Disarmed(0) or Normal(1) or TooHigh(2) or TooLow(3) or ThresholdPending(4)
+TEMP_STATE_DISABLED = 0
+TEMP_STATE_NORMAL = 1
+TEMP_STATE_TOO_HIGH = 2
+TEMP_STATE_TOO_LOW = 3
+TEMP_STATE_THRESHOLD_PENDING = 4
+
+# motion binary event states
+# spec = {0: 'Disarmed', 1: 'Armed', 2: 'Moved', 3: 'Opened', 4: 'Closed',
+#        5: 'DetectedMovement', 6: 'TimedOut', 7: 'Stabilizing', 8: 'CarriedAway',
+#        9: 'InFreeFall'}
+MOTION_STATE_DISARMED = 0
+MOTION_STATE_ARMED = 1
+MOTION_STATE_MOVED = 2
+MOTION_STATE_OPENED = 3
+MOTION_STATE_CLOSED = 4
+MOTION_STATE_MOVEMENT_DETECTED = 5
+MOTION_STATE_TIMED_OUT = 6
+MOTION_STATE_STABILIZING = 7
+MOTION_STATE_IN_FREE_FALL = 8

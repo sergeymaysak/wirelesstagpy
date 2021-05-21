@@ -66,6 +66,8 @@ class BinaryEvent:
     @classmethod
     def make_event(cls, event_type, sensortag):
         """Create event of specific type and tag."""
+        if event_type is None or sensortag is None:
+            return None
         spec_list = BINARY_EVENT_SPECS[event_type]
         return cls(spec_list, sensortag)
 

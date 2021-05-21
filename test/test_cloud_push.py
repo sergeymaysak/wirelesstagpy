@@ -12,6 +12,9 @@ import tl.testing.thread
 
 import wirelesstagpy
 import wirelesstagpy.constants as CONST
+from wirelesstagpy.binaryevent import (
+    BinaryEvent
+)
 
 USERNAME = 'foobar'
 PASSWORD = 'deadbeef'
@@ -70,7 +73,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         self.assertFalse(self.platform.is_monitoring)
 
     @requests_mock.mock()
-    def test_binary_event(self, m):
+    def test_binary_event_arrived(self, m):
         """Test binary event."""
         m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
         m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
@@ -78,11 +81,17 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
 
         tag = wirelesstagpy.SensorTag(MOCK.BEFORE_CLOUD_PUSH_SENSOR_INFO, self.platform)
         self.platform._tags["fake-1111-2222-4444-111111111111"] = tag  # pylint: disable=protected-access
+        binary_event = BinaryEvent.make_state_event(tag)
+        self.assertIsNone(binary_event)
 
         local_platform = self.platform
 
         def push_callback(tags, events):
-
+            self.assertTrue(len(events) == 1)
+            arrived_events = events["fake-1111-2222-4444-111111111111"]
+            self.assertTrue(len(arrived_events) == 7)
+            event = arrived_events[0]
+            self.assertIsNotNone(str(event))
             local_platform.stop_monitoring()
 
         with tl.testing.thread.ThreadJoiner(1):
@@ -94,3 +103,8 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         raw_tags = root.find(".//{http://mytaglist.com/ethComet}GetNextUpdate2Result")
         tags = json.loads(raw_tags.text)
         self.assertTrue(len(tags) == 1)
+
+    def test_binary_event_factory(self):
+        """Test binary event factory methods."""
+        event = BinaryEvent.make_event(None, None)
+        self.assertIsNone(event)

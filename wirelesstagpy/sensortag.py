@@ -138,9 +138,9 @@ class SensorTag:
         return self._info['eventState']
 
     @property
-    def is_motion_sensor_armed(self):
+    def is_motion_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to motion evens."""
-        return self.motion_state != 0
+        return self.motion_state != CONST.MOTION_STATE_DISARMED
 
     @property
     def humidity_sensor_state(self) -> int:
@@ -152,7 +152,7 @@ class SensorTag:
     def is_humidity_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to humidity changes events."""
         cap_state = self.humidity_sensor_state
-        return cap_state not in [0, 1]
+        return cap_state not in [CONST.HUMIDITY_STATE_NA, CONST.HUMIDITY_STATE_DISABLED]
 
     @property
     def moisture_sensor_state(self) -> int:
@@ -173,7 +173,7 @@ class SensorTag:
     @property
     def is_temperature_sensor_armed(self) -> bool:
         """Return True if tag armed and listens to temperature changes evens."""
-        return self.temperature_sensor_state != 0
+        return self.temperature_sensor_state != CONST.TEMP_STATE_DISABLED
 
     @property
     def light_sensor_state(self) -> int:
@@ -192,32 +192,32 @@ class SensorTag:
     @property
     def is_moved(self) -> bool:
         """Return True if detected movement."""
-        return self.motion_state == 2  # Moved
+        return self.motion_state == CONST.MOTION_STATE_MOVED  # Moved
 
     @property
     def is_door_open(self) -> bool:
         """Return True if detected door opening."""
-        return self.motion_state == 3  # Open
+        return self.motion_state == CONST.MOTION_STATE_OPENED  # Open
 
     @property
     def is_cold(self) -> bool:
         """Return True if temperature is too low."""
-        return self.temperature_sensor_state == 3  # TooLow
+        return self.temperature_sensor_state == CONST.TEMP_STATE_TOO_LOW  # TooLow
 
     @property
     def is_heat(self) -> bool:
         """Return True if temperature is too high."""
-        return self.temperature_sensor_state == 2  # TooHigh
+        return self.temperature_sensor_state == CONST.TEMP_STATE_TOO_HIGH  # TooHigh
 
     @property
     def is_too_dry(self) -> bool:
         """Return True if humidity is too low (<20%)."""
-        return self.humidity_sensor_state == 3  # TooDry
+        return self.humidity_sensor_state == CONST.HUMIDITY_STATE_TOO_DRY  # TooDry
 
     @property
     def is_too_humid(self) -> bool:
         """Return True if humidity is too wet (>80%)."""
-        return self.humidity_sensor_state == 4  # TooHumid
+        return self.humidity_sensor_state == CONST.HUMIDITY_STATE_TOO_WET  # TooHumid
 
     @property
     def is_light_on(self) -> bool:
@@ -373,7 +373,7 @@ class SensorTag:
             if event is not None:
                 events.append(event)
 
-        if self.tag_type == CONST.WIRELESSTAG_TYPE_WATER and self.is_leaking != old_tag.is_leaking:
+        if self.is_leaking != old_tag.is_leaking:
             event = BinaryEvent.make_event(CONST.EVENT_MOISTURE, self)
             events.append(event)
 
@@ -401,43 +401,43 @@ class SensorTag:
 
         return events
 
-    def _make_humidity_event(self, old_tag) -> BinaryEvent:
-        # NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
+    @property
+    def humidity_event_type(self):
+        """Return current humidity event type."""
+        spec = {CONST.HUMIDITY_STATE_TOO_DRY: CONST.EVENT_DRY,
+                CONST.HUMIDITY_STATE_TOO_WET: CONST.EVENT_WET}
         event_type = None
+        if self.humidity_sensor_state in spec:
+            event_type = spec[self.humidity_sensor_state]
+        return event_type
 
-        if self.is_too_dry:
-            event_type = CONST.EVENT_DRY
-        elif self.is_too_humid:
-            event_type = CONST.EVENT_WET
-        elif self.humidity_sensor_state == 2:  # Normal(2) then check previous state
-            if old_tag.is_too_dry:
-                event_type = CONST.EVENT_DRY
-            elif self.is_too_humid:
-                event_type = CONST.EVENT_WET
+    def _make_humidity_event(self, old_tag) -> BinaryEvent:
+        """Make humidity binary event."""
+        # NA(0) or Disarmed (1) or Normal(2) or TooDry(3) or TooHumid(4) or ThresholdPending
+        event_type = self.humidity_event_type
+        if self.humidity_sensor_state == CONST.HUMIDITY_STATE_NORMAL:  # Normal(2) then check previous state
+            event_type = old_tag.humidity_event_type
 
-        if event_type is not None:
-            return BinaryEvent.make_event(event_type, self)
+        return BinaryEvent.make_event(event_type, self)
 
-        return None
+    @property
+    def temperature_event_type(self):
+        """Return current temperature event type."""
+        spec = {CONST.TEMP_STATE_TOO_HIGH: CONST.EVENT_HEAT,
+                CONST.TEMP_STATE_TOO_LOW: CONST.EVENT_COLD}
+        event_type = None
+        if self.temperature_sensor_state in spec:
+            event_type = spec[self.temperature_sensor_state]
+        return event_type
 
     def _make_temperature_event(self, old_tag) -> BinaryEvent:
+        """Make temperature binary event."""
         # Disarmed(0) or Normal(1) or TooHigh(2) or TooLow(3) or ThresholdPending(4)
-        event_type = None
+        event_type = self.temperature_event_type
+        if self.temperature_sensor_state == CONST.TEMP_STATE_NORMAL:  # Normal(1)
+            event_type = old_tag.temperature_event_type
 
-        if self.is_heat:
-            event_type = CONST.EVENT_HEAT
-        elif self.is_cold:
-            event_type = CONST.EVENT_COLD
-        elif self.temperature_sensor_state == 1:  # Normal(1)
-            if old_tag.is_heat:
-                event_type = CONST.EVENT_HEAT
-            elif old_tag.is_cold:
-                event_type = CONST.EVENT_COLD
-
-        if event_type is not None:
-            return BinaryEvent.make_event(event_type, self)
-
-        return None
+        return BinaryEvent.make_event(event_type, self)
 
     def __getattr__(self, key):
         """Return proxy models for subscripting support."""

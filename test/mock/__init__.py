@@ -557,7 +557,7 @@ CLOUD_PUSH_UPDATE_RESPONSE = '''<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <soap:Body>
         <GetNextUpdate2Response xmlns="http://mytaglist.com/ethComet">
-            <GetNextUpdate2Result>[{"dbid":2,"notificationJS":null,"name":"Weather Station","uuid":"fake-1111-2222-4444-111111111111","comment":"","slaveId":11,"tagType":26,"discon":null,"lastComm":132655886150468311,"alive":true,"signaldBm":-76,"batteryVolt":3.1116966701471327,"beeping":false,"lit":false,"migrationPending":false,"beepDurationDefault":5,"eventState":0,"tempEventState":0,"OutOfRange":false,"tempSpurTh":28,"lux":0,"temperature":18.036840438842773,"tempCalOffset":0,"capCalOffset":0,"image_md5":null,"cap":41.00469970703125,"capRaw":0,"az2":0,"capEventState":1,"lightEventState":1,"shorted":false,"zmod":null,"thermostat":null,"playback":null,"postBackInterval":600,"rev":159,"version1":2,"freqOffset":-9,"freqCalApplied":6595,"reviveEvery":4,"oorGrace":2,"tempBL":null,"capBL":null,"luxBL":null,"LBTh":2.67,"enLBN":true,"txpwr":26,"rssiMode":true,"ds18":false,"v2flag":16,"batteryRemaining":0.99}]</GetNextUpdate2Result>
+            <GetNextUpdate2Result>[{"dbid":2,"notificationJS":null,"name":"Weather Station","uuid":"fake-1111-2222-4444-111111111111","comment":"","slaveId":11,"tagType":32,"discon":null,"lastComm":132655886150468311,"alive":true,"signaldBm":-76,"batteryVolt":3.1116966701471327,"beeping":false,"lit":false,"migrationPending":false,"beepDurationDefault":5,"eventState":3,"tempEventState":1,"OutOfRange":false,"tempSpurTh":28,"lux":0,"temperature":18.036840438842773,"tempCalOffset":0,"capCalOffset":0,"image_md5":null,"cap":41.00469970703125,"capRaw":0,"az2":0,"capEventState":2,"lightEventState":3,"shorted":false,"zmod":null,"thermostat":null,"playback":null,"postBackInterval":600,"rev":159,"version1":2,"freqOffset":-9,"freqCalApplied":6595,"reviveEvery":4,"oorGrace":2,"tempBL":null,"capBL":null,"luxBL":null,"LBTh":2.67,"enLBN":true,"txpwr":26,"rssiMode":true,"ds18":false,"v2flag":16,"batteryRemaining":0.99}]</GetNextUpdate2Result>
         </GetNextUpdate2Response>
     </soap:Body>
 </soap:Envelope>'''
@@ -569,30 +569,30 @@ BEFORE_CLOUD_PUSH_SENSOR_INFO = {
     "uuid": "fake-1111-2222-4444-111111111111",
     "comment": "",
     "slaveId": 11,
-    "tagType": 26,
+    "tagType": 32,
     "discon": None,
     "lastComm": 132655886150468311,
     "alive": True,
     "signaldBm": -76,
-    "batteryVolt": 3.1116966701471327,
+    "batteryVolt": 2,
     "beeping": False,
     "lit": False,
     "migrationPending": False,
     "beepDurationDefault": 5,
     "eventState": 0,
-    "tempEventState": 0,
-    "OutOfRange": False,
+    "tempEventState": 2,
+    "OutOfRange": True,
     "tempSpurTh": 28,
     "lux": 0,
     "temperature": 18.036840438842773,
     "tempCalOffset": 0,
     "capCalOffset": 0,
     "image_md5": None,
-    "cap": 41.00469970703125,
+    "cap": 0,
     "capRaw": 0,
     "az2": 0,
-    "capEventState": 1,
-    "lightEventState": 1,
+    "capEventState": 3,
+    "lightEventState": 2,
     "shorted": False,
     "zmod": None,
     "thermostat": None,
