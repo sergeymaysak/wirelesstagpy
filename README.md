@@ -79,7 +79,7 @@ import wirelesstagspy
 
 api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
 def callback(tags_spec, events_spec):
-    for uuid, tag in tags_spec.items():
+    for (uuid, tag) in tags_spec.items():
         if uuid in events_spec:
             events = events_spec[uuid]
             print("triggered events: {}".format(events))
