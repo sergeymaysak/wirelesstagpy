@@ -78,8 +78,12 @@ Wireless Sensor Tags platform allows to monitor state of sensors with push notif
 import wirelesstagspy
 
 api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
-def callback(sensors):
-    print("updated sensors: {}".format(sensors))
+def callback(tags_spec, events_spec):
+    for uuid, tag in tags_spec.items():
+        if uuid in events_spec:
+            events = events_spec[uuid]
+            print("triggered events: {}".format(events))
+        print("updated tag: {}".format(tag))
 
 # starts long running thread with getting updates from cloud immidiately when change happens.
 # it is not a polling, but rather a similar to WebSockets get update logic
