@@ -16,7 +16,7 @@ import wirelesstagpy.notificationconfig as NS
 # Human Readable Name,
 # device_class/type,
 # push notification type representing 'on',
-# push notification type representing 'of',
+# push notification type representing 'off',
 # attr to check state
 BINARY_EVENT_SPECS = {
     CONST.EVENT_PRESENCE: ['Presence', CONST.EVENT_PRESENCE, 'is_in_range', {
@@ -66,8 +66,28 @@ class BinaryEvent:
     @classmethod
     def make_event(cls, event_type, sensortag):
         """Create event of specific type and tag."""
+        if event_type is None or sensortag is None:
+            return None
         spec_list = BINARY_EVENT_SPECS[event_type]
         return cls(spec_list, sensortag)
+
+    @classmethod
+    def make_state_event(cls, tag):
+        """Create event for state changes in tag."""
+        # {0: 'Disarmed', 1: 'Armed', 2: 'Moved', 3: 'Opened', 4: 'Closed',
+        #        5: 'DetectedMovement', 6: 'TimedOut', 7: 'Stabilizing', 8: 'CarriedAway',
+        #        9: 'InFreeFall'}
+        spec = {2: CONST.EVENT_MOTION, 3: CONST.EVENT_DOOR, 4: CONST.EVENT_DOOR,
+                5: CONST.EVENT_MOTION}
+
+        event_type = None
+        if tag.motion_state in spec:
+            event_type = spec[tag.motion_state]
+
+        if event_type is not None:
+            return cls.make_event(event_type, tag)
+
+        return None
 
     def __init__(self, spec_list, sensortag):
         """Init event with attributes list and tag."""
@@ -99,6 +119,10 @@ class BinaryEvent:
     def is_state_on(self):
         """Return binary event state."""
         return getattr(self._parent_tag(), self._tag_attr, False)
+
+    def __repr__(self):
+        """Return string representation of binary event."""
+        return '{} - is on: {}'.format(self.human_readable_name, self.is_state_on)
 
 
 class BinaryEventProxy:

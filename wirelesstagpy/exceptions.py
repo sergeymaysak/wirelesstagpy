@@ -9,5 +9,5 @@ class WirelessTagsException(Exception):
 
     def __init__(self, message):
         """Initialize WirelessTagsException."""
-        super(WirelessTagsException, self).__init__(message)
+        super().__init__(message)
         self.message = message

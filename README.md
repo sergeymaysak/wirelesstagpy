@@ -66,6 +66,25 @@ succeed = api.install_push_notification(1, notifications, False)
 # if you have multiple tag managers you need specify its 'mac' stored in each tag as following
 succeed = api.install_push_notification(sensor.tag_id, notifications, False,
                                         sensor.tag_manager_mac)
+
+```
+
+## Monitor push events from cloud
+
+Wireless Sensor Tags platform allows to monitor state of sensors with push notification on change right from cloud.
+
+```python
+
+import wirelesstagspy
+
+api = wirelesstagpy.WirelessTags(username='login_email', password='your_password')
+def callback(sensors):
+    print("updated sensors: {}".format(sensors))
+
+# starts long running thread with getting updates from cloud immidiately when change happens.
+# it is not a polling, but rather a similar to WebSockets get update logic
+api.start_monitoring(callback)
+
 ```
 
 ## Arm/Disarm sensor monitoring for specific event
@@ -99,6 +118,7 @@ You can get list of supported sensors and binary events by calling `tag.allowed_
 Also you can query tag on list of supported monitoring conditions that can be represented as switches to be armed/disarmed by calling `tag.allowed_monitoring_types`.
 
 Handling sensors:
+
 ```python
 
 import wirelesstagpy
@@ -116,6 +136,7 @@ for (uuid, tag) in tags.items():
 ```
 
 Handling binary events:
+
 ```python
 
 import wirelesstagpy
@@ -133,6 +154,7 @@ for (uuid, tag) in tags.items():
 ```
 
 Use binary events to build custom push notifications configurations
+
 ```python
 
 import wirelesstagpy
