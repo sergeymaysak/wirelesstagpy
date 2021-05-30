@@ -6,7 +6,7 @@ Defines sensor model for wirelesstags platform.
 
 Tags could of different types with different set of active working attributes.
 
-Copyrights: (c) 2018 Sergiy Maysak, see LICENSE file for details
+Copyrights: (c) 2018-2021 Sergiy Maysak, see LICENSE file for details
 Creation Date: 3/7/2018
 """
 
@@ -235,6 +235,16 @@ class SensorTag:
         return self.battery_volts <= self.low_battery_threshold
 
     @property
+    def ambient_temperature(self):
+        """Return ambient temperature value. Outdoor Probe only."""
+        return self.humidity
+
+    @property
+    def has_ambient_temperature(self) -> bool:
+        """Return if ambient temperature present."""
+        return self._info['ds18']
+
+    @property
     def supported_binary_events_types(self):
         """Return supported by tag binary event types (events with state on or off)."""
         events_map = {
@@ -309,15 +319,23 @@ class SensorTag:
                 CONST.SENSOR_LIGHT],
             CONST.WIRELESSTAG_TYPE_PIR: [
                 CONST.SENSOR_TEMPERATURE,
-                CONST.SENSOR_HUMIDITY
-            ],
+                CONST.SENSOR_HUMIDITY],
+            CONST.WIRELESSTAG_TYPE_OUTDOOR_PROBE: [
+                CONST.SENSOR_TEMPERATURE,
+                CONST.SENSOR_HUMIDITY],
             CONST.WIRELESSTAG_TYPE_WEMO_DEVICE: []
         }
 
         tag_type = self.tag_type
-        return (
+        allowed_types = (
             sensors_per_tag_type[tag_type] if tag_type in sensors_per_tag_type
             else all_sensors)
+
+        if self.has_ambient_temperature:
+            allowed_types.append(CONST.SENSOR_AMBIENT_TEMPERATURE)
+            allowed_types.remove(CONST.SENSOR_HUMIDITY)
+
+        return allowed_types
 
     def sensor_for_type(self, sensor_type) -> Sensor:
         """Return sensor for specified type or None if not supported by tag."""
@@ -456,6 +474,8 @@ class SensorTag:
         # ALS Pro (8bit)
         elif self.tag_type == CONST.WIRELESSTAG_TYPE_ALSPRO:
             return '{} temp: {} humidity: {} lux: {}'.format(self.name, self.temperature, self.humidity, self.light)
+        elif self.tag_type == CONST.WIRELESSTAG_TYPE_OUTDOOR_PROBE and self.has_ambient_temperature:
+            return '{} temp: {} ambient temp: {}'.format(self.name, self.temperature, self.ambient_temperature)
 
         # use 13-bit tag supports temp/motion/humidity as fallback for everything else
         return '{} temp: {} humidity: {}'.format(self.name, self.temperature, self.humidity)
