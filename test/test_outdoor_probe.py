@@ -13,18 +13,6 @@ USERNAME = 'foobar'
 PASSWORD = 'deadbeef'
 
 
-def extract_last_bits(integer, amount_of_bits) -> int:
-    """Return last bits from integer."""
-    binary = bin(integer)
-    binary = binary[2:]
-
-    end = len(binary)
-    start = end - amount_of_bits
-
-    sub_str = binary[start: end]
-    return int(sub_str, 2)
-
-
 class TestOutdoorProbe(unittest.TestCase):
     """Tests for Cloud Push logic."""
 
@@ -42,21 +30,21 @@ class TestOutdoorProbe(unittest.TestCase):
     def test_probe_type(self):
         """Test probe type."""
         rev = 159
-        last_bits = extract_last_bits(rev, 4)
+        last_bits = self.tag_outdoor.extract_last_bits(rev, 4)
         print("last bits {}".format(last_bits))
         self.assertEqual(last_bits, 0xF)
 
         rev = 158
-        last_bits = extract_last_bits(rev, 4)
+        last_bits = self.tag_outdoor.extract_last_bits(rev, 4)
         self.assertEqual(last_bits, 0xE)
 
         rev = 157
-        last_bits = extract_last_bits(rev, 4)
+        last_bits = self.tag_outdoor.extract_last_bits(rev, 4)
         self.assertEqual(last_bits, 0xD)
 
     def test_ambient_tmeperature_sensor(self):
         """Test outdoor probe ambient sensor."""
-        self.assertEqual(self.tag_outdoor.has_ambient_temperature, True)
+        self.assertEqual(self.tag_outdoor.outdoor_probe_has_ambient_temperature, True)
 
         sensor = self.tag_outdoor.sensor[CONST.SENSOR_AMBIENT_TEMPERATURE]
         self.assertIsNotNone(sensor)
