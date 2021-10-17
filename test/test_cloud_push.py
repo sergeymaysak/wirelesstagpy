@@ -34,9 +34,9 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
     @requests_mock.mock()
     def test_cloud_push(self, m):
         """Test cloud push logic."""
-        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
-        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
-        m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, text=MOCK.CLOUD_PUSH_UPDATE_RESPONSE)
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
+        m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, text=MOCK.CLOUD_PUSH_UPDATE_RESPONSE, status_code=200)
 
         local_platform = self.platform
 
@@ -48,7 +48,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
             local_platform.stop_monitoring()
             self.assertFalse(local_platform.is_monitoring)
 
-        with tl.testing.thread.ThreadJoiner(1):
+        with tl.testing.thread.ThreadJoiner(15):
             self.platform.start_monitoring(push_callback)
             # try to run it again
             if self.platform.is_monitoring is True:
@@ -56,18 +56,20 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
         self.assertFalse(self.platform.is_monitoring)
         self.platform.stop_monitoring()
         self.assertFalse(self.platform.is_monitoring)
+        self.platform.stop_monitoring()
+        self.assertFalse(self.platform.is_monitoring)
 
     @requests_mock.mock()
     def test_cloud_push_failed(self, m):
         """Test cloud push logic."""
-        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
-        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
         m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, status_code=500)
 
         def push_callback(tags, events):
             pass
 
-        with tl.testing.thread.ThreadJoiner(1):
+        with tl.testing.thread.ThreadJoiner(15):
             self.platform.start_monitoring(push_callback)
             self.platform.stop_monitoring()
         self.assertFalse(self.platform.is_monitoring)
@@ -75,9 +77,9 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
     @requests_mock.mock()
     def test_binary_event_arrived(self, m):
         """Test binary event."""
-        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE)
-        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE)
-        m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, text=MOCK.CLOUD_PUSH_UPDATE_RESPONSE)
+        m.post(CONST.SIGN_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
+        m.post(CONST.IS_SIGNED_IN_URL, text=MOCK.LOGIN_RESPONSE, status_code=200)
+        m.post(CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, text=MOCK.CLOUD_PUSH_UPDATE_RESPONSE, status_code=200)
 
         tag = wirelesstagpy.SensorTag(MOCK.BEFORE_CLOUD_PUSH_SENSOR_INFO, self.platform)
         self.platform._tags["fake-1111-2222-4444-111111111111"] = tag  # pylint: disable=protected-access
@@ -94,7 +96,7 @@ class TestCloudPush(tl.testing.thread.ThreadAwareTestCase):
             self.assertIsNotNone(str(event))
             local_platform.stop_monitoring()
 
-        with tl.testing.thread.ThreadJoiner(1):
+        with tl.testing.thread.ThreadJoiner(15):
             self.platform.start_monitoring(push_callback)
 
     def test_soup_parsing(self):

@@ -33,6 +33,8 @@ import requests
 
 from wirelesstagpy.sensortag import SensorTag
 from wirelesstagpy.exceptions import WirelessTagsException
+from wirelesstagpy.exceptions import WirelessTagsWrongCredentials
+from wirelesstagpy.exceptions import WirelessTagsConnectionError
 from wirelesstagpy.notificationconfig import NotificationConfig
 import wirelesstagpy.constants as CONST
 
@@ -75,6 +77,7 @@ class WirelessTags:
     def load_tags(self):
         """Load all registered tags."""
         if self._needs_reload:
+            _LOGGER.info("Start tags loading.")
             cookies = self._auth_cookies
             try:
                 response = requests.post(
@@ -202,6 +205,7 @@ class WirelessTags:
         if self._is_cloud_push_active is False:
             return
 
+        _LOGGER.info("Stop monitoring")
         self._is_cloud_push_active = False
         self._thread.join(timeout=1)
 
@@ -209,17 +213,26 @@ class WirelessTags:
         """Start working thread for monitoring cloud push."""
         def _cloud_push_worker(handler):
             """Worker function for thread."""
+            sleep_interval = 0
+            SECONDS_BETWEEN_SLEEP = 10 # 10 seconds by default
+            MAX_SECONDS_SLEEP = 600 # 10 minutes
             while True:
                 if not self._is_cloud_push_active:
                     break
                 try:
+                    _LOGGER.info("Start listen for push update")
                     tags_updated = self._request_push_update()
                     if tags_updated is not None and len(tags_updated) > 0:
                         updated_tags, events = self._update_tags(tags_updated)
                         handler(updated_tags, events)
                 except Exception as error:
-                    _LOGGER.error("failed to get cloud push: %s",
-                                  error)
+                    _LOGGER.info("Failed to get cloud push: %s", error)
+                    sleep_interval = min(sleep_interval + SECONDS_BETWEEN_SLEEP,
+                                         MAX_SECONDS_SLEEP)
+                    _LOGGER.info("Retry monitor in %s seconds", sleep_interval)
+                    time.sleep(sleep_interval)
+
+            _LOGGER.info("Worker thread complete.")
 
         self._thread = Thread(target=_cloud_push_worker, args=(handler, ))
         self._thread.start()
@@ -227,6 +240,7 @@ class WirelessTags:
     def _request_push_update(self):
         """Request push update for tags states."""
         cookies = self._auth_cookies
+
         tags_updated = []
         try:
             payload = CONST.SOAP_CLOUD_PUSH_PAYLOAD
@@ -234,11 +248,16 @@ class WirelessTags:
             response = requests.post(
                 CONST.REQUEST_CLOUD_PUSH_UPDATE_URL, headers=headers,
                 cookies=cookies, data=payload)
+            if response.status_code >= 400:
+                _LOGGER.debug("Push update response: %s - %s", response.status_code, response.text)
+                raise WirelessTagsConnectionError
             root = ElementTree.fromstring(response.content)
             raw_tags = root.find(CONST.CLOUD_PUSH_XPATH)
             tags_updated = json.loads(raw_tags.text)
         except Exception as error:
-            _LOGGER.error("failed to fetch push update: %s", error)
+            _LOGGER.error("Failed to fetch push update: %s", error)
+            raise
+
         return tags_updated
 
     def _update_tags(self, tags):
@@ -296,15 +315,28 @@ class WirelessTags:
         try:
             response = requests.post(
                 self._SIGN_IN_URL, headers=self._HEADERS, data=auth)
-            json_response = response.json()
 
-            self._update_server_settings(json_response['d'])
-            self._cookies = response.cookies
+            if response.status_code < 400:
+                json_response = response.json()
+                self._update_server_settings(json_response['d'])
+                self._cookies = response.cookies
+            else:
+                _LOGGER.debug("Login response status code: %s - %s, reason: %s",
+                              response.status_code, response.text, response.reason)
+                code = response.status_code
+                if code == 500 and "unauthorized" in response.text.lower():
+                    _LOGGER.debug("Failed to login to %s", CONST.BASEURL)
+                    raise WirelessTagsWrongCredentials
+                # raise connection error for any other kinds of errors from server
+                raise WirelessTagsConnectionError
+        except WirelessTagsWrongCredentials:
+            _LOGGER.debug("Incorrect credentials - unable to login - rethrow")
+            self._cookies = None
+            raise
         except Exception as error:
             _LOGGER.debug("Failed to login to %s - %s", CONST.BASEURL, error)
             self._cookies = None
-            raise WirelessTagsException("Unable to login to wirelesstags.net"
-                                        " - check your credentials") from error
+            raise WirelessTagsConnectionError from error
 
         _LOGGER.info("Login successful")
 
@@ -316,7 +348,7 @@ class WirelessTags:
         self.use_celsius = (server_info['temp_unit'] == 0)
 
     @property
-    def _is_signed_in(self):
+    def _is_signed_in(self) -> bool:
         cookies = self._cookies
         result = False
         if cookies is None:
@@ -324,21 +356,26 @@ class WirelessTags:
         try:
             response = requests.post(
                 self._IS_SIGNED_IN_URL, headers=self._HEADERS, cookies=cookies)
-            json_response = response.json()
-            if 'd' in json_response:
-                self._update_server_settings(json_response['d'])
-                result = True
+            if response.status_code < 400:
+                json_response = response.json()
+                if 'd' in json_response:
+                    self._update_server_settings(json_response['d'])
+                    result = True
+            else:
+                _LOGGER.debug("Sign in response status code: %s - %s",
+                              response.status_code, response.text)
+                raise WirelessTagsConnectionError
         except Exception as error:
-            _LOGGER.debug("Failed to check signin status - %s", error)
+            _LOGGER.debug("Failed to check signin status: %s", error)
             self._cookies = None
         return result
 
     @property
     def _auth_cookies(self):
-        if self._is_signed_in:
-            return self._cookies
-
-        return self._login()
+        with self._update_lock:
+            if self._is_signed_in:
+                return self._cookies
+            return self._login()
 
     @property
     def _needs_reload(self):
