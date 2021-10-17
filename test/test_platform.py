@@ -124,8 +124,16 @@ class TestWirelessTags(unittest.TestCase):
     @requests_mock.mock()
     def test_failed_login(self, m):
         """Verify handling of incorrect credentials."""
-        m.post(CONST.SIGN_IN_URL, status_code=500)
-        with self.assertRaises(wirelesstagpy.WirelessTagsException):
+        m.post(CONST.SIGN_IN_URL, text='unauthorized', status_code=500)
+        with self.assertRaises(wirelesstagpy.WirelessTagsWrongCredentials):
+            tags = self.platform_no_cred.load_tags()
+            print('tags: {}'.format(tags))
+    
+    @requests_mock.mock()
+    def test_failed_login_connection_failed(self, m):
+        """Verify handling of incorrect credentials."""
+        m.post(CONST.SIGN_IN_URL, status_code=503)
+        with self.assertRaises(wirelesstagpy.WirelessTagsConnectionError):
             tags = self.platform_no_cred.load_tags()
             print('tags: {}'.format(tags))
 
