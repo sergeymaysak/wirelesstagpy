@@ -32,7 +32,6 @@ from threading import Lock
 import requests
 
 from wirelesstagpy.sensortag import SensorTag
-from wirelesstagpy.exceptions import WirelessTagsException
 from wirelesstagpy.exceptions import WirelessTagsWrongCredentials
 from wirelesstagpy.exceptions import WirelessTagsConnectionError
 from wirelesstagpy.notificationconfig import NotificationConfig
@@ -214,8 +213,6 @@ class WirelessTags:
         def _cloud_push_worker(handler):
             """Worker function for thread."""
             sleep_interval = 0
-            SECONDS_BETWEEN_SLEEP = 10 # 10 seconds by default
-            MAX_SECONDS_SLEEP = 600 # 10 minutes
             while True:
                 if not self._is_cloud_push_active:
                     break
@@ -227,8 +224,8 @@ class WirelessTags:
                         handler(updated_tags, events)
                 except Exception as error:
                     _LOGGER.info("Failed to get cloud push: %s", error)
-                    sleep_interval = min(sleep_interval + SECONDS_BETWEEN_SLEEP,
-                                         MAX_SECONDS_SLEEP)
+                    sleep_interval = min(sleep_interval + CONST.SECONDS_BETWEEN_SLEEP,
+                                         CONST.MAX_SECONDS_SLEEP)
                     _LOGGER.info("Retry monitor in %s seconds", sleep_interval)
                     time.sleep(sleep_interval)
 

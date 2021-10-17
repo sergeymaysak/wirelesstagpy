@@ -5,7 +5,7 @@
 
 MAJOR_VERSION = 0
 MINOR_VERSION = 6
-PATCH_VERSION = 0
+PATCH_VERSION = 1
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -33,6 +33,9 @@ REQUEST_CLOUD_PUSH_UPDATE_URL = BASEURL + "/ethComet.asmx?op=GetNextUpdateForAll
 SOAP_CLOUD_PUSH_PAYLOAD = '''<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetNextUpdateForAllManagersOnDB2 xmlns="http://mytaglist.com/ethComet"><dbid>2</dbid></GetNextUpdateForAllManagersOnDB2></soap:Body></soap:Envelope>'''
 SOAP_CLOUD_PUSH_HEADERS = {"Content-Type": "text/xml; charset=utf-8", "SOAPAction": "http://mytaglist.com/ethComet/GetNextUpdateForAllManagersOnDB2"}
 CLOUD_PUSH_XPATH = ".//{http://mytaglist.com/ethComet}GetNextUpdateForAllManagersOnDB2Result"
+
+SECONDS_BETWEEN_SLEEP = 10  # 10 seconds by default
+MAX_SECONDS_SLEEP = 600  # 10 minutes
 
 WIRELESSTAG_TYPE_13BIT = 13
 WIRELESSTAG_TYPE_ALSPRO = 26

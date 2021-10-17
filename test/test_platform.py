@@ -128,7 +128,7 @@ class TestWirelessTags(unittest.TestCase):
         with self.assertRaises(wirelesstagpy.WirelessTagsWrongCredentials):
             tags = self.platform_no_cred.load_tags()
             print('tags: {}'.format(tags))
-    
+
     @requests_mock.mock()
     def test_failed_login_connection_failed(self, m):
         """Verify handling of incorrect credentials."""
