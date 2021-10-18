@@ -14,7 +14,7 @@ PASSWORD = 'deadbeef'
 
 
 class TestOutdoorProbe(unittest.TestCase):
-    """Tests for Outdoor Probe senros logic."""
+    """Tests for Outdoor Probe sensors logic."""
 
     def setUp(self):
         """Set up wirelesstags platform module."""
