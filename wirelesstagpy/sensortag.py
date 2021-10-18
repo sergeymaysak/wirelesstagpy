@@ -6,7 +6,7 @@ Defines sensor model for wirelesstags platform.
 
 Tags could of different types with different set of active working attributes.
 
-Copyrights: (c) 2018 Sergiy Maysak, see LICENSE file for details
+Copyrights: (c) 2018-2021 Sergiy Maysak, see LICENSE file for details
 Creation Date: 3/7/2018
 """
 
@@ -235,6 +235,73 @@ class SensorTag:
         return self.battery_volts <= self.low_battery_threshold
 
     @property
+    def ambient_temperature(self):
+        """Return ambient temperature value. Outdoor Probe only."""
+        return self.humidity
+
+    @property
+    def revision(self) -> int:
+        """Return revision of sensortag hardware."""
+        return self._info['rev']
+
+    @property
+    def has_sen0227(self) -> bool:
+        """Return if SEN0227 is connected."""
+        return self._info['shorted']
+
+    @property
+    def has_ds18(self) -> bool:
+        """Return if ds18 is connected."""
+        return self._info['ds18']
+
+    @property
+    def product_version(self) -> int:
+        """Return product variation variation."""
+        return self.extract_last_bits(self.revision, 4)
+
+    @property
+    def outdoor_probe_has_ambient_temperature(self) -> bool:
+        """Return if outdoor probe tag has ambient temperature."""
+        # .rev & 0xF:    shows which product it is
+        # 0xD:  Outdoor Probe Basic.
+        #  Accepts DS18B20 (read tip temperature in .temperature only)
+        # or SEN0227  (read tip temperature in .temperature and tip humidity in .cap)
+        # 0xF:   Outdoor Probe Thermocouple.
+        #   Accepts DS18B20 (read tip temperature in .temperature and ambient temperature in .cap)
+        #   or Thermocouple (read tip temperature in .temperature and ambient temperature in .cap)
+        #   or SEN0227  (read tip temperature in .temperature and tip humidity in .cap)
+        # .shorted:  1 if SEN0227 is connected
+        # .ds18:  1 if DS18B20 is connected
+        probe_ambient_map = {
+            0xD: False,  # 0xD:  Outdoor Probe Basic.
+            0xF: not self.has_sen0227  # 0xF:  Outdoor Probe Thermocouple.
+        }
+        probe_type = self.product_version
+        return probe_ambient_map[probe_type] if probe_type in probe_ambient_map else False
+
+    @property
+    def outdoor_probe_has_humidity(self) -> bool:
+        """Return if outdoor probe tag tip humidity."""
+        probe_humidity_map = {
+            0xD: not self.has_ds18,  # 0xD:  Outdoor Probe Basic.
+            0xF: self.has_sen0227  # 0xF:  Outdoor Probe Thermocouple.
+        }
+        probe_type = self.product_version
+        return probe_humidity_map[probe_type] if probe_type in probe_humidity_map else True
+
+    @staticmethod
+    def extract_last_bits(integer, amount_of_bits) -> int:
+        """Return last bits from integer."""
+        binary = bin(integer)
+        binary = binary[2:]
+
+        end = len(binary)
+        start = end - amount_of_bits
+
+        sub_str = binary[start: end]
+        return int(sub_str, 2)
+
+    @property
     def supported_binary_events_types(self):
         """Return supported by tag binary event types (events with state on or off)."""
         events_map = {
@@ -309,15 +376,25 @@ class SensorTag:
                 CONST.SENSOR_LIGHT],
             CONST.WIRELESSTAG_TYPE_PIR: [
                 CONST.SENSOR_TEMPERATURE,
-                CONST.SENSOR_HUMIDITY
-            ],
+                CONST.SENSOR_HUMIDITY],
+            CONST.WIRELESSTAG_TYPE_OUTDOOR_PROBE: [
+                CONST.SENSOR_TEMPERATURE,
+                CONST.SENSOR_HUMIDITY],
             CONST.WIRELESSTAG_TYPE_WEMO_DEVICE: []
         }
 
         tag_type = self.tag_type
-        return (
+        allowed_types = (
             sensors_per_tag_type[tag_type] if tag_type in sensors_per_tag_type
             else all_sensors)
+
+        if self.tag_type == CONST.WIRELESSTAG_TYPE_OUTDOOR_PROBE:
+            if self.outdoor_probe_has_ambient_temperature:
+                allowed_types.append(CONST.SENSOR_AMBIENT_TEMPERATURE)
+            if not self.outdoor_probe_has_humidity:
+                allowed_types.remove(CONST.SENSOR_HUMIDITY)
+
+        return allowed_types
 
     def sensor_for_type(self, sensor_type) -> Sensor:
         """Return sensor for specified type or None if not supported by tag."""
@@ -456,6 +533,8 @@ class SensorTag:
         # ALS Pro (8bit)
         elif self.tag_type == CONST.WIRELESSTAG_TYPE_ALSPRO:
             return '{} temp: {} humidity: {} lux: {}'.format(self.name, self.temperature, self.humidity, self.light)
+        elif self.tag_type == CONST.WIRELESSTAG_TYPE_OUTDOOR_PROBE and self.outdoor_probe_has_ambient_temperature:
+            return '{} temp: {} ambient temp: {}'.format(self.name, self.temperature, self.ambient_temperature)
 
         # use 13-bit tag supports temp/motion/humidity as fallback for everything else
         return '{} temp: {} humidity: {}'.format(self.name, self.temperature, self.humidity)

@@ -4,8 +4,8 @@
 """WirelessTags constants."""
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 6
-PATCH_VERSION = 1
+MINOR_VERSION = 7
+PATCH_VERSION = 0
 
 __version__ = '{}.{}.{}'.format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
@@ -41,7 +41,7 @@ WIRELESSTAG_TYPE_13BIT = 13
 WIRELESSTAG_TYPE_ALSPRO = 26
 WIRELESSTAG_TYPE_WATER = 32
 # Reed/RH (52)???
-# Outdoor Probe/Thermocouple	42
+WIRELESSTAG_TYPE_OUTDOOR_PROBE = 42
 WIRELESSTAG_TYPE_PIR = 72
 WIRELESSTAG_TYPE_WEMO_DEVICE = 82
 
@@ -78,6 +78,7 @@ EVENT_BATTERY = 'battery'
 
 # supported sensor types
 SENSOR_TEMPERATURE = 'temperature'
+SENSOR_AMBIENT_TEMPERATURE = 'ambient_temperature'
 SENSOR_HUMIDITY = 'humidity'
 SENSOR_MOISTURE = 'moisture'
 SENSOR_LIGHT = 'light'

@@ -7,7 +7,7 @@ Model class representing sensor of specific type.
 Single tag contains multiple number of sensors such as
 temperature, motion, moisture, humidity or light.
 
-Copyrights: (c) 2018 Sergiy Maysak, see LICENSE file for details
+Copyrights: (c) 2018-2021 Sergiy Maysak, see LICENSE file for details
 Creation Date: 8/30/2018
 """
 
@@ -23,6 +23,11 @@ SENSOR_TYPES = {
         'attr': 'temperature',
         'update_attr': 'temp'
     },
+    CONST.SENSOR_AMBIENT_TEMPERATURE: {
+        'unit': '°C',
+        'attr': 'ambient_temperature',
+        'update_attr': 'cap'
+    },
     CONST.SENSOR_HUMIDITY: {
         'unit': '%',
         'attr': 'humidity',
@@ -34,7 +39,7 @@ SENSOR_TYPES = {
         'update_attr': 'cap'
     },
     CONST.SENSOR_LIGHT: {
-        'unit': 'lux',
+        'unit': 'lx',
         'attr': 'light',
         'update_attr': 'lux'
     }
