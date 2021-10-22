@@ -272,9 +272,9 @@ class SensorTag:
 
         hw_revision = hex(self.hw_revision)[2:].upper()
         if self.tag_type in names_map:
-            return f"{names_map[self.tag_type]} rev.{hw_revision}"
+            return '{} rev.{}'.format(names_map[self.tag_type], hw_revision)
 
-        return f"Tag type {self.tag_type} rev.{hw_revision}"
+        return 'Tag type {} rev.{}'.format(self.tag_type, hw_revision)
 
     @property
     def outdoor_probe_has_ambient_temperature(self) -> bool:
