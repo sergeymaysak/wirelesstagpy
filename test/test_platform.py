@@ -127,7 +127,7 @@ class TestWirelessTags(unittest.TestCase):
     def test_unknown_sensor_name(self):
         """Test avaiable binary states for als pro tag."""
         tag = SensorTag(MOCK.TAG_UNKNOWN, self.platform, '0d0d0d0d0d0d')
-        self.assertEquals(tag.human_readable_name, "Tag type 15 rev.AF")
+        self.assertEqual(tag.human_readable_name, "Tag type 15 rev.AF")
 
 
     @requests_mock.mock()
