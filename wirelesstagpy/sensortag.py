@@ -260,6 +260,23 @@ class SensorTag:
         return self.extract_last_bits(self.revision, 4)
 
     @property
+    def human_readable_name(self):
+        """Human readable tag name."""
+        names_map = {
+            13: "Tag w/13b Temperature",
+            26: "ALS Pro Tag",
+            32: "Water/Moisture Sensor",
+            42: "Outdoor Probe",
+            72: "PIR Sensor",
+        }
+
+        hw_revision = hex(self.hw_revision)[2:].upper()
+        if self.tag_type in names_map:
+            return f"{names_map[self.tag_type]} rev.{hw_revision}"
+
+        return f"Tag type {self.tag_type} rev.{hw_revision}"
+
+    @property
     def outdoor_probe_has_ambient_temperature(self) -> bool:
         """Return if outdoor probe tag has ambient temperature."""
         # .rev & 0xF:    shows which product it is

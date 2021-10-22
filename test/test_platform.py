@@ -90,6 +90,7 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
         self.assertIsNotNone(tag.tag_manager_mac)
+        self.assertIsNotNone(tag.human_readable_name)
 
     def test_water_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
@@ -105,6 +106,7 @@ class TestWirelessTags(unittest.TestCase):
         self.assertFalse(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
         self.assertIsNotNone(tag.tag_manager_mac)
+        self.assertIsNotNone(tag.human_readable_name)
 
     def test_13bit_tag_binary_states(self):
         """Test avaiable binary states for als pro tag."""
@@ -120,6 +122,13 @@ class TestWirelessTags(unittest.TestCase):
         self.assertTrue(tag.is_battery_low)
         self.assertIsNotNone(str(tag))
         self.assertIsNotNone(tag.tag_manager_mac)
+        self.assertIsNotNone(tag.human_readable_name)
+
+    def test_unknown_sensor_name(self):
+        """Test avaiable binary states for als pro tag."""
+        tag = SensorTag(MOCK.TAG_UNKNOWN, self.platform, '0d0d0d0d0d0d')
+        self.assertEquals(tag.human_readable_name, "Tag type 15 rev.AF")
+
 
     @requests_mock.mock()
     def test_failed_login(self, m):

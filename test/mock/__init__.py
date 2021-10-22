@@ -15,7 +15,8 @@ ALS_PRO = {
     "lux": 1000,
     "cap": 36,
     "batteryVolt": 3.05576890659684,
-    "LBTh": 2.55
+    "LBTh": 2.55,
+    "rev": 159,
 }
 
 BITS13 = {
@@ -33,7 +34,8 @@ BITS13 = {
     "lux": 0,
     "cap": 87,
     "batteryVolt": 2.05576890659684,
-    "LBTh": 2.55
+    "LBTh": 2.55,
+    "rev": 111
 }
 
 WATERSENSOR = {
@@ -51,7 +53,8 @@ WATERSENSOR = {
     "lux": 0,
     "cap": 87,
     "batteryVolt": 3.05576890659684,
-    "LBTh": 2.55
+    "LBTh": 2.55,
+    "rev": 37,
 }
 
 PIRSENSOR = {
@@ -103,6 +106,29 @@ PIRSENSOR = {
     "ds18": False,
     "v2flag": 18,
     "batteryRemaining": 0.95
+}
+
+TAG_UNKNOWN = {
+    "managerName": "#manager_1",
+    "mac": "0D0D0D0D0D0D",
+    "slaveId": 1,
+    "name": "Kitchen",
+    "uuid": "fake-1111-2222-4444-111111111111",
+    "tagType": 15,
+    "rev": 175,
+    "version1": 2,
+    "ds18": False,
+    "v2flag": 18,
+    "batteryRemaining": 0.95,
+    "eventState": 0,
+    "tempEventState": 0,
+    "capEventState": 0,
+    "lightEventState": 0,
+    "temperature": 22.3912296295166,
+    "lux": 0,
+    "cap": 87,
+    "batteryVolt": 3.05576890659684,
+    "LBTh": 2.55,
 }
 
 LOGIN_RESPONSE = '''
