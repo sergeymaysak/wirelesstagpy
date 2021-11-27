@@ -192,7 +192,7 @@ class SensorTag:
     @property
     def is_moved(self) -> bool:
         """Return True if detected movement."""
-        return self.motion_state == CONST.MOTION_STATE_MOVED  # Moved
+        return self.motion_state in (CONST.MOTION_STATE_MOVED, CONST.MOTION_STATE_MOVEMENT_DETECTED)
 
     @property
     def is_door_open(self) -> bool:
