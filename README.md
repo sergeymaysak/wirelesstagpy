@@ -2,6 +2,8 @@
 
 A simple python wrapper library for Wireless Sensor Tag platform (`http://wirelesstag.net`).
 
+[![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-direct.svg)](https://vshymanskyy.github.io/StandWithUkraine)
+
 Supports getting data for registered by end user sensor tags.
 wirelesstag.net account credentials are needed to use this lib.
 Enabling tags sharing is not required.
